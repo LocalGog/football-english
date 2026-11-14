@@ -1,0 +1,13 @@
+[
+  {"id":"m01","title":"First Touch","description":"Перший дотик до м'яча","level":1,"mission_type":"match_challenge","words":["ball","goal","player","team","run","kick"],"sentences":["s01","s02"],"rewards":{"xp":20},"estimated_duration":4},
+  {"id":"m02","title":"Training Day","description":"Тренування з командою","level":1,"mission_type":"match_challenge","words":["pass","shoot","coach","match","win","lose"],"sentences":["s03","s04"],"rewards":{"xp":20},"estimated_duration":4},
+  {"id":"m03","title":"Positions","description":"Хто де грає","level":1,"mission_type":"match_challenge","words":["goalkeeper","defender","striker","midfielder","captain","referee"],"sentences":["s05","s06"],"rewards":{"xp":20},"estimated_duration":5},
+  {"id":"m04","title":"Kit Room","description":"Збираємо форму","level":1,"mission_type":"match_challenge","words":["boots","shirt","shorts","socks","gloves","water"],"sentences":["s07","s08"],"rewards":{"xp":20},"estimated_duration":4},
+  {"id":"m05","title":"Team Colours","description":"Кольори клубу","level":1,"mission_type":"match_challenge","words":["red","blue","green","yellow","white","black"],"sentences":["s09","s10"],"rewards":{"xp":20},"estimated_duration":4},
+  {"id":"m06","title":"Numbers 1–5","description":"Номери на футболках","level":1,"mission_type":"match_challenge","words":["one","two","three","four","five"],"sentences":["s11","s12"],"rewards":{"xp":20},"estimated_duration":4},
+  {"id":"m07","title":"Numbers 6–10","description":"Легендарна десятка","level":1,"mission_type":"match_challenge","words":["six","seven","eight","nine","ten"],"sentences":["s13","s14"],"rewards":{"xp":20},"estimated_duration":4},
+  {"id":"m08","title":"Body Check","description":"Чим грає футболіст","level":1,"mission_type":"match_challenge","words":["head","leg","foot","hand","arm","eye"],"sentences":["s15","s16"],"rewards":{"xp":20},"estimated_duration":4},
+  {"id":"m09","title":"Hello, Team!","description":"Знайомство в роздягальні","level":1,"mission_type":"match_challenge","words":["hello","yes","no","thank-you","friend","good"],"sentences":["s17","s18"],"rewards":{"xp":20},"estimated_duration":4},
+  {"id":"m10","title":"Stadium","description":"Великий стадіон","level":1,"mission_type":"match_challenge","words":["stadium","pitch","fan","cup","medal","flag"],"sentences":["s19","s20"],"rewards":{"xp":20},"estimated_duration":4},
+  {"id":"m11","title":"Match Day","description":"Фінал сезону: усе разом","level":1,"mission_type":"match_challenge","words":["ball","pass","shoot","goalkeeper","team","win"],"sentences":["s21","s22"],"rewards":{"xp":40},"estimated_duration":4}
+]
