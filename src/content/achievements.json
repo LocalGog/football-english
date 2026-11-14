@@ -6,5 +6,6 @@
   {"id":"football-genius","title":"Football Genius","description":"Вивчи 100 слів","metric":"learned","target":100},
   {"id":"seven-days","title":"7 Days Champion","description":"Грай у 7 різних днів","metric":"days","target":7},
   {"id":"squad-eleven","title":"Squad Eleven","description":"Збери 11 гравців у клуб","metric":"cards","target":11},
-  {"id":"season-one","title":"Season One Winner","description":"Зіграй усі матчі першого сезону","metric":"season1","target":13}
+  {"id":"season-one","title":"Season One Winner","description":"Зіграй усі матчі першого сезону","metric":"season1","target":13},
+  {"id":"clear-voice","title":"Clear Voice","description":"Потренуй вимову 30 слів","metric":"spoken","target":30}
 ]

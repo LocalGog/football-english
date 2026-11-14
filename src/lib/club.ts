@@ -37,6 +37,8 @@ export function metricValue(metric: Metric, content: Content, p: Progress): numb
       return p.stats.days.length;
     case 'cards':
       return p.club.cards.length;
+    case 'spoken':
+      return p.stats.spoken;
     case 'season1':
       return content.missions.filter((m) => m.level === 1 && p.missions[m.id]?.completed > 0).length;
   }

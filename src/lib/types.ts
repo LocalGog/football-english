@@ -81,7 +81,23 @@ export interface Rival {
   strength: number;
 }
 
-export type Metric = 'goals' | 'learned' | 'perfect' | 'listen' | 'days' | 'cards' | 'season1';
+export type Metric = 'goals' | 'learned' | 'perfect' | 'listen' | 'days' | 'cards' | 'season1' | 'spoken';
+
+export interface DialogueLine {
+  speaker: string;
+  english: string;
+  ukrainian: string;
+}
+
+export interface Dialogue {
+  id: string;
+  /** Mission whose match ends with this dialogue. */
+  mission: string;
+  lines: DialogueLine[];
+  /** Possible replies; `answer` is the index of the right one. */
+  options: { english: string; ukrainian: string }[];
+  answer: number;
+}
 
 export interface Achievement {
   id: string;
@@ -99,11 +115,19 @@ export interface Content {
   stadiums: Stadium[];
   rivals: Rival[];
   achievements: Achievement[];
+  dialogues: Dialogue[];
   words: Word[];
   sentences: Sentence[];
   missions: Mission[];
   wordById: Map<string, Word>;
   sentenceById: Map<string, Sentence>;
+}
+
+export type PickMode = 'read' | 'listen' | 'name';
+
+export interface ModeTally {
+  c: number;
+  w: number;
 }
 
 export interface WordStat {
@@ -113,6 +137,10 @@ export interface WordStat {
   /** 0 = new … 5 = solid. */
   mastery: number;
   nextReview: number | null;
+  /** Right and wrong answers per task type: shows whether reading, listening or recall is the weak spot. */
+  modes?: Partial<Record<PickMode, ModeTally>>;
+  /** Wrong options picked instead of this word, with counts. */
+  confused?: Record<string, number>;
 }
 
 export interface MissionStat {
@@ -147,6 +175,8 @@ export interface Stats {
   secondsPlayed: number;
   perfectMatches: number;
   listenCorrect: number;
+  /** Words practised in the pronunciation drill. */
+  spoken: number;
   /** Local dates (YYYY-MM-DD) on which a match was finished. */
   days: string[];
 }
@@ -160,6 +190,8 @@ export interface Progress {
   settings: Settings;
   stats: Stats;
   club: ClubState;
+  /** Difficulty tier 0..2, moved one step at a time by match results. */
+  adaptive: { tier: number };
   /** Achievement id -> time unlocked. */
   achievements: Record<string, number>;
 }
@@ -171,6 +203,6 @@ export interface MatchResult {
   goal: boolean;
   xp: number;
   seconds: number;
+  /** Words answered wrong at least once in this match. */
+  missed: string[];
 }
-
-export type PickMode = 'read' | 'listen' | 'name';

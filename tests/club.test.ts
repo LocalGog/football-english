@@ -10,7 +10,7 @@ import type { MatchResult, Progress } from '../src/lib/types';
 const DAY = 86_400_000;
 const noon = (day: number) => new Date(2026, 10, 1 + day, 12).getTime();
 const match = (missionId: string, goal: boolean, perfect = false): MatchResult => ({
-  missionId, goal, correct: perfect ? 16 : 10, total: 16, xp: 100, seconds: 60,
+  missionId, goal, correct: perfect ? 16 : 10, total: 16, xp: 100, seconds: 60, missed: [],
 });
 const learn = (p: Progress, ids: string[]): Progress => ids.reduce((acc, id) => recordAnswer(recordAnswer(acc, id, true, 0), id, true, 0), p);
 const withPlayer = (): Progress => ({ ...newProgress(), player: { name: 'Max', avatar: 'gold' } });
@@ -38,7 +38,7 @@ describe('match records', () => {
   it('old saves without a club load with an empty one, and bad club data is repaired', () => {
     const old = normalizeProgress({ version: 1, player: { name: 'Max', avatar: 'red' }, xp: 10, stats: { secondsPlayed: 5 } });
     expect(old?.club).toEqual({ cards: [], tokens: 0, ball: 'classic', stadium: 'street' });
-    expect(old?.stats).toEqual({ secondsPlayed: 5, perfectMatches: 0, listenCorrect: 0, days: [] });
+    expect(old?.stats).toEqual({ secondsPlayed: 5, perfectMatches: 0, listenCorrect: 0, spoken: 0, days: [] });
     const bad = normalizeProgress({ version: 1, club: { cards: ['p01', 'p01', 7], tokens: -3, ball: 5 }, achievements: { a: 'x', b: 2 } });
     expect(bad?.club).toEqual({ cards: ['p01'], tokens: 0, ball: 'classic', stadium: 'street' });
     expect(bad?.achievements).toEqual({ b: 2 });
@@ -60,7 +60,7 @@ describe('achievements', () => {
     for (let d = 0; d < 7; d++) p = recordMatch(p, match('m01', true, true), noon(d), true);
     for (let i = 0; i < 50; i++) p = recordAnswer(p, 'ball', true, 0, 'listen');
     for (const m of content.missions.filter((m) => m.level === 1)) p = recordMatch(p, match(m.id, true), noon(8), true);
-    p = { ...p, club: { ...p.club, cards: content.players.slice(0, 11).map((c) => c.id) } };
+    p = { ...p, club: { ...p.club, cards: content.players.slice(0, 11).map((c) => c.id) }, stats: { ...p.stats, spoken: 30 } };
     const { progress } = unlockAchievements(content, p, 1);
     expect(Object.keys(progress.achievements).sort()).toEqual([...ids].sort());
     expect(metricValue('days', content, p)).toBe(8);

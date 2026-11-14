@@ -21,7 +21,10 @@ interface Props {
 export function Result({ content, progress, plan, result, xpBefore, unlocked, tokenEarned, onClub, onNext, onHome }: Props) {
   const before = levelInfo(xpBefore);
   const after = levelInfo(progress.xp);
-  const wordIds = [...new Set(plan.steps.flatMap((s) => (s.kind === 'pick' && !s.shot ? [s.wordId] : [])))];
+  const missed = new Set(result.missed);
+  const all = [...new Set(plan.steps.flatMap((s) => (s.kind === 'pick' ? [s.wordId] : [])))];
+  // Words that went wrong come first: they are the ones worth another listen.
+  const wordIds = [...all.filter((id) => missed.has(id)), ...all.filter((id) => !missed.has(id))];
 
   return (
     <div className="mx-auto flex h-full max-w-md flex-col">
@@ -86,14 +89,15 @@ export function Result({ content, progress, plan, result, xpBefore, unlocked, to
               return (
                 <li key={id}>
                   <button
-                    className="flex w-full items-center gap-2 rounded-2xl border border-line bg-panel px-3 py-2 text-left"
+                    className={`flex w-full items-center gap-2 rounded-2xl border bg-panel px-3 py-2 text-left ${missed.has(id) ? 'border-miss' : 'border-line'}`}
+                    data-missed={missed.has(id)}
                     onClick={() => speak(w.english, progress.settings)}
                     aria-label={`Послухати ${w.english}`}
                   >
                     <WordImage word={w} className="w-9 text-center text-2xl" />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-semibold">{w.english}</span>
-                      <span className="block truncate text-sm text-mute">{w.ukrainian}</span>
+                      <span className="block truncate text-sm text-mute">{missed.has(id) ? `${w.ukrainian} · повтори` : w.ukrainian}</span>
                     </span>
                     <Volume2 size={18} className="shrink-0 text-mute" />
                   </button>

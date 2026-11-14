@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Turtle, Volume2, X } from 'lucide-react';
-import type { BuildStep, IntroStep, MatchPlan, PickStep, Step } from '../lib/engine';
+import type { BuildStep, DialogueStep, HearStep, IntroStep, MatchPlan, PickStep, Step } from '../lib/engine';
 import { XP_FIRST_TRY, XP_GOAL, XP_RETRY } from '../lib/progress';
 import { speak, stopSpeaking, useSpeechStatus, type SpeechStatus } from '../lib/speech';
 import type { BallSkin, Content, MatchResult, PickMode, Settings, Stadium, Word } from '../lib/types';
@@ -19,7 +19,9 @@ interface Props {
   settings: Settings;
   ball: BallSkin;
   stadium: Stadium;
-  onAnswer: (wordId: string, correct: boolean, mode: PickMode) => void;
+  /** Shows Ukrainian under dialogue replies: on for the gentlest difficulty tier. */
+  hints: boolean;
+  onAnswer: (wordId: string, correct: boolean, mode: PickMode, chosen?: string) => void;
   onFinish: (result: MatchResult) => void;
   onExit: () => void;
 }
@@ -38,7 +40,7 @@ function mustWord(content: Content, id: string): Word {
   return w;
 }
 
-export function MissionScreen({ plan, content, settings, ball, stadium, onAnswer, onFinish, onExit }: Props) {
+export function MissionScreen({ plan, content, settings, ball, stadium, hints, onAnswer, onFinish, onExit }: Props) {
   const [queue, setQueue] = useState<Step[]>(plan.steps);
   const [idx, setIdx] = useState(0);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
@@ -47,6 +49,7 @@ export function MissionScreen({ plan, content, settings, ball, stadium, onAnswer
   const [confirmExit, setConfirmExit] = useState(false);
   const startedAt = useRef(Date.now());
   const finished = useRef(false);
+  const missed = useRef(new Set<string>());
   const speechStatus = useSpeechStatus();
 
   const step = queue[idx];
@@ -64,6 +67,7 @@ export function MissionScreen({ plan, content, settings, ball, stadium, onAnswer
       goal,
       xp: score.first * XP_FIRST_TRY + score.retry * XP_RETRY + (goal ? XP_GOAL : 0) + plan.rewardXp,
       seconds: Math.round((Date.now() - startedAt.current) / 1000),
+      missed: [...missed.current],
     });
   };
 
@@ -87,9 +91,12 @@ export function MissionScreen({ plan, content, settings, ball, stadium, onAnswer
     return () => window.clearTimeout(t);
   }, [confirmExit]);
 
-  const answer = (correct: boolean, rightAnswer: string) => {
+  const answer = (correct: boolean, rightAnswer: string, chosen?: string) => {
     if (feedback || step.kind === 'intro') return;
-    if (step.kind === 'pick') onAnswer(step.wordId, correct, step.mode);
+    if (step.kind === 'pick') {
+      onAnswer(step.wordId, correct, step.mode, chosen);
+      if (!correct) missed.current.add(step.wordId);
+    }
     if (correct) setScore((s) => (step.retry ? { ...s, retry: s.retry + 1 } : { ...s, first: s.first + 1 }));
 
     if (step.kind === 'pick' && step.shot) {
@@ -146,7 +153,13 @@ export function MissionScreen({ plan, content, settings, ball, stadium, onAnswer
           <PickView key={step.key} step={step} content={content} say={say} speechStatus={speechStatus} locked={feedback !== null} onAnswer={answer} />
         )}
         {step.kind === 'build' && (
-          <BuildView key={step.key} step={step} content={content} say={say} locked={feedback !== null} onAnswer={answer} />
+          <BuildView key={step.key} step={step} content={content} say={say} speechStatus={speechStatus} locked={feedback !== null} onAnswer={answer} />
+        )}
+        {step.kind === 'hear' && (
+          <HearView key={step.key} step={step} content={content} say={say} speechStatus={speechStatus} locked={feedback !== null} onAnswer={answer} />
+        )}
+        {step.kind === 'dialogue' && (
+          <DialogueView key={step.key} step={step} content={content} say={say} hints={hints} locked={feedback !== null} onAnswer={answer} />
         )}
       </main>
 
@@ -236,7 +249,7 @@ interface PickProps {
   say: Say;
   speechStatus: SpeechStatus;
   locked: boolean;
-  onAnswer: (correct: boolean, rightAnswer: string) => void;
+  onAnswer: (correct: boolean, rightAnswer: string, chosen?: string) => void;
 }
 
 function PickView({ step, content, say, speechStatus, locked, onAnswer }: PickProps) {
@@ -258,7 +271,7 @@ function PickView({ step, content, say, speechStatus, locked, onAnswer }: PickPr
     setChosen(id);
     const correct = id === step.wordId;
     if (!correct || naming) say(word.english);
-    onAnswer(correct, `${word.english} — ${word.ukrainian}`);
+    onAnswer(correct, `${word.english} — ${word.ukrainian}`, id);
   };
 
   const lookFor = (id: string) => {
@@ -315,7 +328,7 @@ function PickView({ step, content, say, speechStatus, locked, onAnswer }: PickPr
           return (
             <button
               key={id}
-              className={`flex min-h-32 flex-col items-center justify-center gap-2 rounded-2xl border-2 p-3 transition ${look}`}
+              className={`flex min-h-32 flex-col items-center justify-center gap-2 rounded-2xl border-2 p-3 transition last:odd:col-span-2 ${look}`}
               onClick={() => choose(id)}
               disabled={chosen !== null || locked}
               data-option={id}
@@ -334,17 +347,24 @@ interface BuildProps {
   step: BuildStep;
   content: Content;
   say: Say;
+  speechStatus: SpeechStatus;
   locked: boolean;
   onAnswer: (correct: boolean, rightAnswer: string) => void;
 }
 
-function BuildView({ step, content, say, locked, onAnswer }: BuildProps) {
+function BuildView({ step, content, say, speechStatus, locked, onAnswer }: BuildProps) {
   const sentence = content.sentenceById.get(step.sentenceId);
   if (!sentence) throw new Error(`Речення «${step.sentenceId}» відсутнє`);
   /** Indices into step.tokens, in the order the player placed them. */
   const [placed, setPlaced] = useState<number[]>([]);
   const [checked, setChecked] = useState<boolean | null>(null);
   const frozen = locked || checked !== null;
+  // Dictation needs a voice; without one the task falls back to translation.
+  const byEar = step.prompt === 'dictation' && speechStatus !== 'unavailable';
+  useEffect(() => {
+    if (step.prompt === 'dictation') say(sentence.english);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const check = () => {
     const correct = placed.map((i) => step.tokens[i]).join(' ') === sentence.english;
@@ -357,9 +377,11 @@ function BuildView({ step, content, say, locked, onAnswer }: BuildProps) {
 
   return (
     <div className="flex flex-1 flex-col gap-4">
-      <div className="py-2 text-center">
-        <p className="text-sm font-semibold uppercase tracking-widest text-mute">Склади англійською</p>
-        <p className="mt-2 text-2xl font-semibold text-gold">{sentence.ukrainian}</p>
+      <div className="flex flex-col items-center gap-2 py-2 text-center" data-build={step.sentenceId}>
+        <p className="text-sm font-semibold uppercase tracking-widest text-mute">{byEar ? 'Послухай і склади' : 'Склади англійською'}</p>
+        {byEar ? <ListenButtons text={sentence.english} say={say} /> : <p className="text-2xl font-semibold text-gold">{sentence.ukrainian}</p>}
+        {byEar && checked !== null && <p className="text-lg font-semibold text-gold">{sentence.ukrainian}</p>}
+        {step.tokens.length > step.answerLength && <p className="text-sm text-mute">Один блок зайвий</p>}
       </div>
       <div
         className={`flex min-h-20 flex-wrap content-start items-start gap-2 rounded-2xl border-2 border-dashed p-3 ${
@@ -388,8 +410,8 @@ function BuildView({ step, content, say, locked, onAnswer }: BuildProps) {
             <button
               key={i}
               className={`${chip} border-line bg-panel text-chalk active:scale-95`}
-              onClick={() => setPlaced((p) => [...p, i])}
-              disabled={frozen}
+              onClick={() => setPlaced((p) => (p.length < step.answerLength ? [...p, i] : p))}
+              disabled={frozen || placed.length >= step.answerLength}
               data-token={token}
             >
               {token}
@@ -401,11 +423,151 @@ function BuildView({ step, content, say, locked, onAnswer }: BuildProps) {
         <button
           className="display sticky bottom-0 h-16 shrink-0 rounded-2xl bg-pitch text-2xl text-chalk shadow-[0_0_0_8px_var(--color-night)] disabled:bg-panel disabled:text-mute"
           onClick={check}
-          disabled={placed.length !== step.tokens.length || locked}
+          disabled={placed.length !== step.answerLength || locked}
         >
           Перевірити
         </button>
       )}
+    </div>
+  );
+}
+
+interface HearProps {
+  step: HearStep;
+  content: Content;
+  say: Say;
+  speechStatus: SpeechStatus;
+  locked: boolean;
+  onAnswer: (correct: boolean, rightAnswer: string) => void;
+}
+
+/** Listening to a whole sentence and choosing what it means. */
+function HearView({ step, content, say, speechStatus, locked, onAnswer }: HearProps) {
+  const sentence = content.sentenceById.get(step.sentenceId);
+  if (!sentence) throw new Error(`Речення «${step.sentenceId}» відсутнє`);
+  const [chosen, setChosen] = useState<string | null>(null);
+  useEffect(() => {
+    say(sentence.english);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const noAudio = speechStatus === 'unavailable';
+
+  const choose = (id: string) => {
+    if (chosen !== null || locked) return;
+    setChosen(id);
+    const correct = id === step.sentenceId;
+    if (!correct) say(sentence.english);
+    onAnswer(correct, `${sentence.english} — ${sentence.ukrainian}`);
+  };
+
+  return (
+    <div className="flex flex-1 flex-col gap-4">
+      <div className="flex flex-col items-center gap-3 py-2 text-center" data-hear={step.sentenceId}>
+        <p className="text-sm font-semibold uppercase tracking-widest text-mute">Послухай речення. Що воно означає?</p>
+        <ListenButtons text={sentence.english} say={say} big />
+        {(noAudio || chosen !== null) && <p className="display text-2xl not-italic normal-case">{sentence.english}</p>}
+        {noAudio && <p className="text-sm text-mute">Звук на цьому пристрої недоступний</p>}
+      </div>
+      <div className="flex flex-1 flex-col justify-center gap-3">
+        {step.options.map((id) => {
+          const state = chosen === null ? 'idle' : id === step.sentenceId ? 'right' : id === chosen ? 'wrong' : 'dim';
+          return (
+            <button
+              key={id}
+              className={`min-h-16 rounded-2xl border-2 px-4 py-3 text-lg font-semibold transition ${CHOICE_LOOK[state]}`}
+              onClick={() => choose(id)}
+              disabled={chosen !== null || locked}
+              data-option={id}
+            >
+              {content.sentenceById.get(id)?.ukrainian}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+const CHOICE_LOOK = {
+  idle: 'border-line bg-panel active:scale-95',
+  right: 'border-pitch bg-pitch/25',
+  wrong: 'anim-shake border-miss bg-miss/20',
+  dim: 'border-line bg-panel opacity-40',
+} as const;
+
+const SPEAKERS: Record<string, string> = {
+  coach: 'Coach',
+  friend: 'Friend',
+  fan: 'Fan',
+  referee: 'Referee',
+  mother: 'Mum',
+  reporter: 'Reporter',
+};
+
+interface DialogueProps {
+  step: DialogueStep;
+  content: Content;
+  say: Say;
+  hints: boolean;
+  locked: boolean;
+  onAnswer: (correct: boolean, rightAnswer: string) => void;
+}
+
+/** A short exchange on the pitch: read or hear what is said and pick the reply that fits. */
+function DialogueView({ step, content, say, hints, locked, onAnswer }: DialogueProps) {
+  const dialogue = content.dialogues.find((d) => d.id === step.dialogueId);
+  if (!dialogue) throw new Error(`Діалог «${step.dialogueId}» відсутній`);
+  const [chosen, setChosen] = useState<number | null>(null);
+  const spoken = dialogue.lines.map((l) => l.english).join(' ');
+  useEffect(() => {
+    say(spoken);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const right = dialogue.options[dialogue.answer];
+
+  const choose = (index: number) => {
+    if (chosen !== null || locked) return;
+    setChosen(index);
+    const correct = index === dialogue.answer;
+    say(right.english);
+    onAnswer(correct, `${right.english} — ${right.ukrainian}`);
+  };
+
+  return (
+    <div className="flex flex-1 flex-col gap-4" data-dialogue={dialogue.id}>
+      <p className="text-center text-sm font-semibold uppercase tracking-widest text-mute">Розмова на полі. Що відповісти?</p>
+      <ul className="flex flex-col gap-2">
+        {dialogue.lines.map((line, i) => (
+          <li key={i}>
+            <button className="max-w-[88%] rounded-2xl rounded-tl-sm border border-line bg-panel px-4 py-3 text-left" onClick={() => say(line.english)}>
+              <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-gold">
+                {SPEAKERS[line.speaker] ?? line.speaker} <Volume2 size={14} />
+              </span>
+              <span className="mt-1 block text-xl font-semibold">{line.english}</span>
+              <span className="block text-sm text-mute">{line.ukrainian}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+      <div className="flex flex-1 flex-col justify-end gap-3">
+        <p className="text-right text-xs font-semibold uppercase tracking-widest text-mute">You</p>
+        {step.order.map((index) => {
+          const option = dialogue.options[index];
+          const state = chosen === null ? 'idle' : index === dialogue.answer ? 'right' : index === chosen ? 'wrong' : 'dim';
+          return (
+            <button
+              key={index}
+              className={`ml-auto w-[88%] rounded-2xl rounded-tr-sm border-2 px-4 py-3 text-left transition ${CHOICE_LOOK[state]}`}
+              onClick={() => choose(index)}
+              disabled={chosen !== null || locked}
+              data-option={index}
+            >
+              <span className="block text-lg font-semibold">{option.english}</span>
+              {(hints || chosen !== null) && <span className="block text-sm text-mute">{option.ukrainian}</span>}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

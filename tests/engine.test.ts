@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { content, validateContent } from '../src/lib/content';
-import { buildMatch, buildReview, tokenize, type MatchPlan, type Rng } from '../src/lib/engine';
+import { buildMatch, buildReview, tokenize, TIERS, type MatchPlan, type Rng } from '../src/lib/engine';
 import { backupFileName, parseBackup, serializeBackup } from '../src/lib/backup';
 import { LEVEL_GATE, levelInfo, newProgress, nextMission, normalizeProgress, playTarget, recordAnswer, recordMatch } from '../src/lib/progress';
 import type { Progress } from '../src/lib/types';
@@ -14,7 +14,7 @@ function seeded(seed: number): Rng {
   };
 }
 
-function checkPlan(plan: MatchPlan): void {
+function checkPlan(plan: MatchPlan, tier = 0): void {
   const last = plan.steps[plan.steps.length - 1];
   expect(last.kind === 'pick' && last.shot).toBe(true);
   expect(new Set(plan.steps.map((s) => s.key)).size).toBe(plan.steps.length);
@@ -22,14 +22,25 @@ function checkPlan(plan: MatchPlan): void {
   for (const step of [...plan.steps, plan.spareShot]) {
     if (step.kind === 'pick') {
       expect(step.options).toContain(step.wordId);
-      expect(step.options.length).toBe(4);
-      expect(new Set(step.options).size).toBe(4);
+      expect(step.options.length).toBe(TIERS[tier].options);
+      expect(new Set(step.options).size).toBe(step.options.length);
       for (const id of step.options) expect(content.wordById.has(id)).toBe(true);
     }
     if (step.kind === 'build') {
       const english = content.sentenceById.get(step.sentenceId)!.english;
-      expect([...step.tokens].sort()).toEqual(tokenize(english).sort());
-      expect(step.tokens.join(' ')).not.toBe(english);
+      const answer = tokenize(english);
+      expect(step.answerLength).toBe(answer.length);
+      expect(step.tokens.length).toBe(answer.length + (TIERS[tier].buildDistractor ? 1 : 0));
+      for (const token of answer) expect(step.tokens).toContain(token);
+      expect(step.tokens.slice(0, answer.length).join(' ')).not.toBe(english);
+    }
+    if (step.kind === 'hear') {
+      expect(step.options).toContain(step.sentenceId);
+      expect(new Set(step.options).size).toBe(3);
+    }
+    if (step.kind === 'dialogue') {
+      const d = content.dialogues.find((x) => x.id === step.dialogueId)!;
+      expect([...step.order].sort()).toEqual(d.options.map((_, i) => i));
     }
   }
 }
@@ -60,7 +71,10 @@ describe('content', () => {
 describe('engine', () => {
   it('builds a valid match for every mission with many seeds', () => {
     for (const mission of content.missions) {
-      for (let seed = 1; seed <= 40; seed++) checkPlan(buildMatch(mission, content, newProgress(), 0, seeded(seed)));
+      for (let tier = 0; tier < TIERS.length; tier++) {
+        const p = { ...newProgress(), adaptive: { tier } };
+        for (let seed = 1; seed <= 15; seed++) checkPlan(buildMatch(mission, content, p, 0, seeded(seed)), tier);
+      }
     }
   });
 
@@ -91,6 +105,7 @@ describe('engine', () => {
     for (const w of content.words.slice(0, 20)) p = recordAnswer(p, w.id, w.id !== 'goal', 1000);
     const plan = buildReview(content, p, 2000, seeded(5));
     checkPlan(plan);
+    checkPlan(buildReview(content, { ...p, adaptive: { tier: 2 } }, 2000, seeded(5)), 2);
     expect(plan.steps.some((s) => s.kind === 'pick' && s.wordId === 'goal')).toBe(true);
   });
 });
@@ -123,7 +138,7 @@ describe('season gate', () => {
   const finishLevel = (p: Progress, level: number): Progress =>
     content.missions
       .filter((m) => m.level === level)
-      .reduce((acc, m) => recordMatch(acc, { missionId: m.id, correct: 1, total: 1, goal: false, xp: 1, seconds: 1 }, 0, true), p);
+      .reduce((acc, m) => recordMatch(acc, { missionId: m.id, correct: 1, total: 1, goal: false, xp: 1, seconds: 1, missed: [] }, 0, true), p);
   const learn = (p: Progress, ids: string[]): Progress =>
     ids.reduce((acc, id) => recordAnswer(recordAnswer(acc, id, true, 0), id, true, 0), p);
   const level1Words = [...new Set(content.missions.filter((m) => m.level === 1).flatMap((m) => m.words))];
@@ -174,12 +189,12 @@ describe('progress', () => {
   it('records a match and unlocks the next mission', () => {
     const p0 = newProgress();
     expect(nextMission(content.missions, p0)?.id).toBe('m01');
-    const p1 = recordMatch(p0, { missionId: 'm01', correct: 10, total: 13, goal: true, xp: 150, seconds: 200 }, 0, true);
+    const p1 = recordMatch(p0, { missionId: 'm01', correct: 10, total: 13, goal: true, xp: 150, seconds: 200, missed: [] }, 0, true);
     expect(p1.xp).toBe(150);
     expect(p1.missions.m01).toEqual({ completed: 1, goals: 1, bestCorrect: 10 });
     expect(nextMission(content.missions, p1)?.id).toBe('m02');
     let all = p0;
-    for (const m of content.missions) all = recordMatch(all, { missionId: m.id, correct: 1, total: 1, goal: false, xp: 1, seconds: 1 }, 0, true);
+    for (const m of content.missions) all = recordMatch(all, { missionId: m.id, correct: 1, total: 1, goal: false, xp: 1, seconds: 1, missed: [] }, 0, true);
     expect(nextMission(content.missions, all)).toBeNull();
   });
   it('rejects foreign data and repairs damaged saves', () => {

@@ -5,6 +5,24 @@ export const XP_PER_LEVEL = 150;
 export const XP_FIRST_TRY = 10;
 export const XP_RETRY = 5;
 export const XP_GOAL = 30;
+export const XP_SPEAK_DRILL = 10;
+
+/** New players start on the gentlest tier. */
+export const START_TIER = 0;
+export const MAX_TIER = 2;
+/** Saves from before tiers existed were made on what is now the middle tier. */
+const LEGACY_TIER = 1;
+const STEP_UP_ACCURACY = 0.9;
+const STEP_DOWN_ACCURACY = 0.6;
+
+/** Difficulty moves at most one step per match, so it never jumps. */
+export function nextTier(tier: number, correct: number, total: number): number {
+  if (total <= 0) return tier;
+  const accuracy = correct / total;
+  if (accuracy >= STEP_UP_ACCURACY) return Math.min(MAX_TIER, tier + 1);
+  if (accuracy < STEP_DOWN_ACCURACY) return Math.max(0, tier - 1);
+  return tier;
+}
 
 const STATUSES = ['Новачок', 'Гравець двору', 'Гравець академії', 'Запасний', 'Гравець основи', 'Лідер команди', 'Капітан', 'Зірка клубу'];
 
@@ -16,9 +34,10 @@ export function newProgress(): Progress {
     missions: {},
     words: {},
     settings: { accent: 'en-GB', rate: 0.9 },
-    stats: { secondsPlayed: 0, perfectMatches: 0, listenCorrect: 0, days: [] },
+    stats: { secondsPlayed: 0, perfectMatches: 0, listenCorrect: 0, spoken: 0, days: [] },
     club: { cards: [], tokens: 0, ball: 'classic', stadium: 'street' },
     achievements: {},
+    adaptive: { tier: START_TIER },
   };
 }
 
@@ -66,6 +85,19 @@ export function normalizeProgress(raw: unknown): Progress | null {
         mastery: Math.min(5, Math.max(0, Math.floor(num(w.mastery, 0)))),
         nextReview: numOrNull(w.nextReview),
       };
+      if (isObj(w.modes)) {
+        stat.modes = {};
+        for (const mode of ['read', 'listen', 'name'] as const) {
+          const t = w.modes[mode];
+          if (isObj(t)) stat.modes[mode] = { c: Math.max(0, num(t.c, 0)), w: Math.max(0, num(t.w, 0)) };
+        }
+      }
+      if (isObj(w.confused)) {
+        stat.confused = {};
+        for (const [other, n] of Object.entries(w.confused).slice(0, 8)) {
+          if (typeof n === 'number' && Number.isFinite(n) && n > 0) stat.confused[other] = n;
+        }
+      }
       base.words[id] = stat;
     }
   }
@@ -78,6 +110,7 @@ export function normalizeProgress(raw: unknown): Progress | null {
       secondsPlayed: Math.max(0, num(raw.stats.secondsPlayed, 0)),
       perfectMatches: Math.max(0, Math.floor(num(raw.stats.perfectMatches, 0))),
       listenCorrect: Math.max(0, Math.floor(num(raw.stats.listenCorrect, 0))),
+      spoken: Math.max(0, Math.floor(num(raw.stats.spoken, 0))),
       days: strings(raw.stats.days).slice(-MAX_DAYS),
     };
   }
@@ -90,6 +123,9 @@ export function normalizeProgress(raw: unknown): Progress | null {
       stadium: typeof raw.club.stadium === 'string' ? raw.club.stadium : base.club.stadium,
     };
   }
+  base.adaptive = {
+    tier: isObj(raw.adaptive) ? Math.min(MAX_TIER, Math.max(0, Math.floor(num(raw.adaptive.tier, LEGACY_TIER)))) : LEGACY_TIER,
+  };
   if (isObj(raw.achievements)) {
     for (const [id, at] of Object.entries(raw.achievements)) {
       if (typeof at === 'number' && Number.isFinite(at)) base.achievements[id] = at;
@@ -98,11 +134,11 @@ export function normalizeProgress(raw: unknown): Progress | null {
   return base;
 }
 
-export function recordAnswer(p: Progress, wordId: string, correct: boolean, now: number, mode?: PickMode): Progress {
+export function recordAnswer(p: Progress, wordId: string, correct: boolean, now: number, mode?: PickMode, chosen?: string): Progress {
   const heard = correct && mode === 'listen';
   return {
     ...p,
-    words: { ...p.words, [wordId]: applyAnswer(p.words[wordId], correct, now) },
+    words: { ...p.words, [wordId]: applyAnswer(p.words[wordId], correct, now, mode, chosen) },
     stats: heard ? { ...p.stats, listenCorrect: p.stats.listenCorrect + 1 } : p.stats,
   };
 }
@@ -139,7 +175,13 @@ export function recordMatch(p: Progress, r: MatchResult, now: number, transfersL
       days: p.stats.days.includes(day) ? p.stats.days : [...p.stats.days, day].slice(-MAX_DAYS),
     },
     club: r.goal && transfersLeft ? { ...p.club, tokens: Math.min(MAX_TOKENS, p.club.tokens + 1) } : p.club,
+    adaptive: { tier: nextTier(p.adaptive.tier, r.correct, r.total) },
   };
+}
+
+/** A finished pronunciation drill: the words count towards review, the drill earns a little XP. */
+export function recordSpeakDrill(p: Progress, words: number): Progress {
+  return { ...p, xp: p.xp + XP_SPEAK_DRILL, stats: { ...p.stats, spoken: p.stats.spoken + words } };
 }
 
 /** First mission not yet finished, or null when the whole season is done. */

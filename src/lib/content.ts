@@ -5,7 +5,8 @@ import levelsJson from '../content/levels.json';
 import playersJson from '../content/players.json';
 import clubJson from '../content/club.json';
 import achievementsJson from '../content/achievements.json';
-import type { Achievement, BallSkin, ClubPlayer, Content, Kit, Level, Mission, Rival, Sentence, Stadium, Word } from './types';
+import dialoguesJson from '../content/dialogues.json';
+import type { Achievement, BallSkin, ClubPlayer, Content, Dialogue, Kit, Level, Mission, Rival, Sentence, Stadium, Word } from './types';
 
 export interface ClubCatalog {
   players: ClubPlayer[];
@@ -14,6 +15,7 @@ export interface ClubCatalog {
   stadiums: Stadium[];
   rivals: Rival[];
   achievements: Achievement[];
+  dialogues: Dialogue[];
 }
 
 export function makeContent(words: Word[], sentences: Sentence[], missions: Mission[], levels: Level[], club: ClubCatalog): Content {
@@ -60,6 +62,14 @@ export function validateContent(c: Content): string[] {
   dup(c.players.map((p) => p.id), 'player');
   dup(c.players.map((p) => p.name), 'player name');
   dup(c.achievements.map((a) => a.id), 'achievement');
+  dup(c.dialogues.map((d) => d.id), 'dialogue');
+  dup(c.dialogues.map((d) => d.mission), 'dialogue mission');
+  for (const d of c.dialogues) {
+    if (!c.missions.some((m) => m.id === d.mission)) problems.push(`dialogue ${d.id}: unknown mission ${d.mission}`);
+    if (d.lines.length === 0 || d.options.length < 3) problems.push(`dialogue ${d.id}: needs a line and 3 options`);
+    if (!d.options[d.answer]) problems.push(`dialogue ${d.id}: answer out of range`);
+    if (new Set(d.options.map((o) => o.english)).size !== d.options.length) problems.push(`dialogue ${d.id}: duplicate options`);
+  }
   const category = (id: string) => c.wordById.get(id)?.category;
   for (const p of c.players) {
     if (category(p.position) !== 'positions') problems.push(`player ${p.id}: position ${p.position} is not a position word`);
@@ -88,5 +98,6 @@ export const content: Content = makeContent(
     stadiums: clubJson.stadiums as Stadium[],
     rivals: clubJson.rivals as Rival[],
     achievements: achievementsJson as Achievement[],
+    dialogues: dialoguesJson as Dialogue[],
   },
 );

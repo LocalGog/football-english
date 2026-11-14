@@ -1,5 +1,5 @@
-import type { Content, Mission, Progress } from './types';
-import { dueWordIds } from './srs';
+import type { Content, Mission, PickMode, Progress } from './types';
+import { confusionsOf, dueWordIds, hardWordIds, weakestMode } from './srs';
 
 export type Rng = () => number;
 
@@ -14,7 +14,7 @@ export interface PickStep {
   wordId: string;
   options: string[];
   /** read: the English word is shown and spoken; listen: spoken only; name: Ukrainian shown, pick the English word. */
-  mode: 'read' | 'listen' | 'name';
+  mode: PickMode;
   shot: boolean;
   retry: boolean;
 }
@@ -22,10 +22,31 @@ export interface BuildStep {
   kind: 'build';
   key: string;
   sentenceId: string;
+  /** Shuffled blocks; on the hard tier one of them does not belong to the sentence. */
   tokens: string[];
+  /** Number of blocks in the right answer. */
+  answerLength: number;
+  /** translate: the Ukrainian sentence is shown; dictation: the English one is only heard. */
+  prompt: 'translate' | 'dictation';
   retry: boolean;
 }
-export type Step = IntroStep | PickStep | BuildStep;
+/** Listening to a whole sentence: hear it in English, pick what it means. */
+export interface HearStep {
+  kind: 'hear';
+  key: string;
+  sentenceId: string;
+  options: string[];
+  retry: boolean;
+}
+export interface DialogueStep {
+  kind: 'dialogue';
+  key: string;
+  dialogueId: string;
+  /** Option indices in display order. */
+  order: number[];
+  retry: boolean;
+}
+export type Step = IntroStep | PickStep | BuildStep | HearStep | DialogueStep;
 
 export interface MatchPlan {
   missionId: string;
@@ -39,12 +60,34 @@ export interface MatchPlan {
   rewardXp: number;
 }
 
+export interface Tier {
+  options: number;
+  listen: number;
+  name: number;
+  /** Sentence-listening questions, taken from matches already played. */
+  hear: number;
+  /** Add a block that does not belong to the sentence. */
+  buildDistractor: boolean;
+  /** Build the last sentence by ear. */
+  dictation: boolean;
+}
+
+/** Difficulty tiers. Each step adds a little; nothing is taken away from the content itself. */
+export const TIERS: readonly Tier[] = [
+  { options: 3, listen: 3, name: 2, hear: 0, buildDistractor: false, dictation: false },
+  { options: 4, listen: 4, name: 3, hear: 1, buildDistractor: false, dictation: false },
+  { options: 4, listen: 5, name: 4, hear: 2, buildDistractor: true, dictation: true },
+];
+
+export const tierOf = (progress: Progress): Tier => TIERS[Math.min(TIERS.length - 1, Math.max(0, progress.adaptive.tier))];
+
 export const REVIEW_ID = 'review';
-const OPTION_COUNT = 4;
-const LISTEN_COUNT = 4;
-const NAME_COUNT = 3;
+export const WEAK_ID = 'weak';
 const REVIEW_WORDS = 8;
 const REVIEW_REWARD_XP = 15;
+const HEAR_OPTIONS = 3;
+/** How many of a word's known mix-ups are put among its answer options. */
+const CONFUSIONS_PER_QUESTION = 2;
 
 export function shuffle<T>(items: readonly T[], rng: Rng): T[] {
   const r = [...items];
@@ -61,55 +104,105 @@ export function tokenize(english: string): string[] {
   return english.trim().split(/\s+/);
 }
 
-function makePick(
-  key: string, wordId: string, mode: PickStep['mode'], pool: string[], rng: Rng, shot = false,
-): PickStep {
-  const distractors = shuffle(pool.filter((id) => id !== wordId), rng).slice(0, OPTION_COUNT - 1);
+/** Block text without case and punctuation, to tell real duplicates apart. */
+const bare = (token: string): string => token.toLowerCase().replace(/[^a-z']/g, '');
+
+interface Ctx {
+  content: Content;
+  progress: Progress;
+  tier: Tier;
+  rng: Rng;
+}
+
+/**
+ * Options for a word: the words the player has mixed it up with come first (so the
+ * exact confusion gets practised), the rest are drawn from the pool.
+ */
+function makePick(key: string, wordId: string, mode: PickMode, pool: string[], ctx: Ctx, shot = false): PickStep {
+  const { content, progress, tier, rng } = ctx;
+  const confused = confusionsOf(progress.words[wordId])
+    .filter((id) => id !== wordId && content.wordById.has(id))
+    // Always leave room for at least one fresh option, so the same set never repeats forever.
+    .slice(0, Math.min(CONFUSIONS_PER_QUESTION, tier.options - 2));
+  const rest = shuffle(pool.filter((id) => id !== wordId && !confused.includes(id)), rng);
+  const distractors = [...confused, ...rest].slice(0, tier.options - 1);
   return { kind: 'pick', key, wordId, mode, shot, retry: false, options: shuffle([wordId, ...distractors], rng) };
 }
 
-function makeBuild(key: string, sentenceId: string, content: Content, rng: Rng): BuildStep {
+function makeBuild(key: string, sentenceId: string, ctx: Ctx, prompt: BuildStep['prompt']): BuildStep {
+  const { content, tier, rng } = ctx;
   const sentence = content.sentenceById.get(sentenceId);
   if (!sentence) throw new Error(`Unknown sentence: ${sentenceId}`);
   const ordered = tokenize(sentence.english);
-  let tokens = shuffle(ordered, rng);
+  let blocks = ordered;
+  if (tier.buildDistractor) {
+    const own = new Set(ordered.map(bare));
+    const foreign = shuffle(content.sentences.flatMap((s) => tokenize(s.english)), rng).find((t) => !own.has(bare(t)));
+    // Stripped of punctuation and capitals so that its shape does not give it away.
+    if (foreign) blocks = [...ordered, bare(foreign)];
+  }
+  let tokens = shuffle(blocks, rng);
   // Never hand over the answer already assembled.
-  if (tokens.join(' ') === ordered.join(' ')) tokens = [...ordered.slice(1), ordered[0]];
-  return { kind: 'build', key, sentenceId, tokens, retry: false };
+  if (tokens.slice(0, ordered.length).join(' ') === ordered.join(' ')) tokens = [...tokens.slice(1), tokens[0]];
+  return { kind: 'build', key, sentenceId, tokens, answerLength: ordered.length, prompt, retry: false };
 }
 
-/** Distractor pool: the mission's own words first, topped up from the rest of the dictionary. */
-function optionPool(primary: string[], content: Content, rng: Rng): string[] {
+/** Distractor pool: the given words first, topped up from the rest of the dictionary. */
+function optionPool(primary: string[], ctx: Ctx): string[] {
   const pool = uniq(primary);
-  if (pool.length >= OPTION_COUNT) return pool;
-  const rest = shuffle(content.words.map((w) => w.id).filter((id) => !pool.includes(id)), rng);
-  return [...pool, ...rest.slice(0, OPTION_COUNT - pool.length)];
+  if (pool.length >= ctx.tier.options) return pool;
+  const rest = shuffle(ctx.content.words.map((w) => w.id).filter((id) => !pool.includes(id)), ctx.rng);
+  return [...pool, ...rest.slice(0, ctx.tier.options - pool.length)];
 }
 
-function withShots(
-  missionId: string, title: string, rewardXp: number, body: Step[], shotWords: string[], pool: string[], rng: Rng,
-): MatchPlan {
-  const [first, second = first] = shuffle(shotWords, rng);
-  const steps = [...body, makePick('shot-1', first, 'listen', pool, rng, true)];
+/** Sentences from matches already played, except those of `exclude`. */
+function knownSentences(ctx: Ctx, exclude: string[]): string[] {
+  const { content, progress } = ctx;
+  return uniq(content.missions.filter((m) => progress.missions[m.id]?.completed > 0).flatMap((m) => m.sentences))
+    .filter((id) => !exclude.includes(id) && content.sentenceById.has(id));
+}
+
+function makeHearSteps(ctx: Ctx, exclude: string[]): HearStep[] {
+  const { content, tier, rng } = ctx;
+  const known = knownSentences(ctx, exclude);
+  if (tier.hear === 0 || known.length === 0) return [];
+  const all = content.sentences.map((s) => s.id);
+  return shuffle(known, rng).slice(0, tier.hear).map((sentenceId) => {
+    const others = shuffle(uniq([...known, ...all]).filter((id) => id !== sentenceId), rng).slice(0, HEAR_OPTIONS - 1);
+    return { kind: 'hear', key: `hear-${sentenceId}`, sentenceId, options: shuffle([sentenceId, ...others], rng), retry: false };
+  });
+}
+
+function makeDialogue(dialogueId: string, ctx: Ctx): DialogueStep {
+  const dialogue = ctx.content.dialogues.find((d) => d.id === dialogueId);
+  if (!dialogue) throw new Error(`Unknown dialogue: ${dialogueId}`);
+  return { kind: 'dialogue', key: `dialogue-${dialogueId}`, dialogueId, order: shuffle(dialogue.options.map((_, i) => i), ctx.rng), retry: false };
+}
+
+function withShots(missionId: string, title: string, rewardXp: number, body: Step[], shotWords: string[], pool: string[], ctx: Ctx): MatchPlan {
+  const [first, second = first] = shuffle(shotWords, ctx.rng);
+  const steps = [...body, makePick('shot-1', first, 'listen', pool, ctx, true)];
   return {
     missionId,
     title,
     rewardXp,
     steps,
     // Marked as a retry so a goal on the second attempt is not counted as a first-try answer.
-    spareShot: { ...makePick('shot-2', second, 'listen', pool, rng, true), retry: true },
+    spareShot: { ...makePick('shot-2', second, 'listen', pool, ctx, true), retry: true },
     questionCount: steps.filter((s) => s.kind !== 'intro').length,
   };
 }
 
 /**
- * A match: new words are introduced three at a time and checked straight away,
- * then a listening round (mixed with words due for review), a round of naming things in English,
- * sentence building, and the shot.
+ * A match: new words are introduced three at a time and checked straight away, then listening
+ * (mixed with words due for review), naming in English, sentence listening, sentence building,
+ * the mission's dialogue, and the shot. The difficulty tier sets how much of each there is.
  */
 export function buildMatch(mission: Mission, content: Content, progress: Progress, now: number, rng: Rng = Math.random): MatchPlan {
   for (const id of mission.words) if (!content.wordById.has(id)) throw new Error(`Unknown word: ${id}`);
-  const pool = optionPool(mission.words, content, rng);
+  const ctx: Ctx = { content, progress, tier: tierOf(progress), rng };
+  const { tier } = ctx;
+  const pool = optionPool(mission.words, ctx);
   const body: Step[] = [];
 
   for (let i = 0; i < mission.words.length; i += 3) {
@@ -117,41 +210,79 @@ export function buildMatch(mission: Mission, content: Content, progress: Progres
     for (const id of chunk) {
       if ((progress.words[id]?.mastery ?? 0) === 0) body.push({ kind: 'intro', key: `intro-${id}`, wordId: id });
     }
-    for (const id of shuffle(chunk, rng)) body.push(makePick(`read-${id}`, id, 'read', pool, rng));
+    for (const id of shuffle(chunk, rng)) body.push(makePick(`read-${id}`, id, 'read', pool, ctx));
   }
 
   const due = dueWordIds(progress, now)
     .filter((id) => !mission.words.includes(id) && content.wordById.has(id))
     .slice(0, 2);
-  const listenWords = [...due, ...shuffle(mission.words, rng)].slice(0, LISTEN_COUNT);
+  const listenWords = [...due, ...shuffle(mission.words, rng)].slice(0, tier.listen);
   const listenPool = uniq([...pool, ...due]);
-  for (const id of shuffle(listenWords, rng)) body.push(makePick(`listen-${id}`, id, 'listen', listenPool, rng));
+  for (const id of shuffle(listenWords, rng)) body.push(makePick(`listen-${id}`, id, 'listen', listenPool, ctx));
 
-  for (const id of shuffle(mission.words, rng).slice(0, NAME_COUNT)) body.push(makePick(`name-${id}`, id, 'name', pool, rng));
+  for (const id of shuffle(mission.words, rng).slice(0, tier.name)) body.push(makePick(`name-${id}`, id, 'name', pool, ctx));
 
-  for (const id of mission.sentences) body.push(makeBuild(`build-${id}`, id, content, rng));
+  body.push(...makeHearSteps(ctx, mission.sentences));
 
-  return withShots(mission.id, mission.title, mission.rewards.xp, body, mission.words, pool, rng);
+  mission.sentences.forEach((id, i) => {
+    const byEar = tier.dictation && i === mission.sentences.length - 1 && mission.sentences.length > 1;
+    body.push(makeBuild(`build-${id}`, id, ctx, byEar ? 'dictation' : 'translate'));
+  });
+
+  const dialogue = content.dialogues.find((d) => d.mission === mission.id);
+  if (dialogue) body.push(makeDialogue(dialogue.id, ctx));
+
+  return withShots(mission.id, mission.title, mission.rewards.xp, body, mission.words, pool, ctx);
 }
 
-/** Free-play match once the season is finished: weakest and most overdue words first. */
-export function buildReview(content: Content, progress: Progress, now: number, rng: Rng = Math.random): MatchPlan {
-  const due = dueWordIds(progress, now).filter((id) => content.wordById.has(id));
+/**
+ * Review match. Each word is asked in the task type it is weakest in.
+ * `focus` narrows it to given words (the weak-words drill); otherwise overdue and weakest words are taken.
+ */
+export function buildReview(content: Content, progress: Progress, now: number, rng: Rng = Math.random, focus?: string[]): MatchPlan {
+  const ctx: Ctx = { content, progress, tier: tierOf(progress), rng };
+  const valid = (id: string) => content.wordById.has(id);
+  const due = dueWordIds(progress, now).filter(valid);
   const weakest = Object.entries(progress.words)
-    .filter(([id]) => content.wordById.has(id))
+    .filter(([id]) => valid(id))
     .sort((a, b) => a[1].mastery - b[1].mastery)
     .map(([id]) => id);
   const fallback = shuffle(content.words.map((w) => w.id), rng);
-  const words = uniq([...due, ...weakest, ...fallback]).slice(0, REVIEW_WORDS);
-  const pool = optionPool(words, content, rng);
+  const words = uniq([...(focus ?? []).filter(valid), ...due, ...weakest, ...fallback]).slice(0, REVIEW_WORDS);
+  const pool = optionPool(words, ctx);
 
   const body: Step[] = [];
-  const modes: PickStep['mode'][] = ['read', 'listen', 'name'];
   words.forEach((id, i) => {
-    const mode = modes[Math.floor((i * modes.length) / words.length)];
-    body.push(makePick(`${mode}-${id}`, id, mode, pool, rng));
+    const mode = weakestMode(progress.words[id], i);
+    body.push(makePick(`${mode}-${id}`, id, mode, pool, ctx));
   });
-  for (const s of shuffle(content.sentences, rng).slice(0, 2)) body.push(makeBuild(`build-${s.id}`, s.id, content, rng));
 
-  return withShots(REVIEW_ID, 'Review Match', REVIEW_REWARD_XP, body, words, pool, rng);
+  body.push(...makeHearSteps(ctx, []));
+
+  const known = knownSentences(ctx, []);
+  const sentences = shuffle(known.length >= 2 ? known : content.sentences.map((s) => s.id), rng).slice(0, 2);
+  for (const id of sentences) body.push(makeBuild(`build-${id}`, id, ctx, 'translate'));
+
+  const played = content.dialogues.filter((d) => progress.missions[d.mission]?.completed > 0);
+  if (played.length) body.push(makeDialogue(shuffle(played, rng)[0].id, ctx));
+
+  return focus
+    ? withShots(WEAK_ID, 'Weak Words', REVIEW_REWARD_XP, body, words, pool, ctx)
+    : withShots(REVIEW_ID, 'Review Match', REVIEW_REWARD_XP, body, words, pool, ctx);
+}
+
+/** Match made of the words the player keeps missing. */
+export function buildWeakDrill(content: Content, progress: Progress, now: number, rng: Rng = Math.random): MatchPlan {
+  return buildReview(content, progress, now, rng, hardWordIds(progress));
+}
+
+export const SPEAK_ITEMS = 5;
+export const SPEAK_MIN_WORDS = 3;
+
+/** Words for the pronunciation drill: overdue and difficult ones first, then anything already met. */
+export function pickSpeakWords(content: Content, progress: Progress, now: number, rng: Rng = Math.random): string[] {
+  const seen = Object.keys(progress.words).filter((id) => content.wordById.has(id));
+  if (seen.length < SPEAK_MIN_WORDS) return [];
+  const priority = uniq([...dueWordIds(progress, now), ...hardWordIds(progress)]).filter((id) => seen.includes(id));
+  return uniq([...priority, ...shuffle(seen, rng)]).slice(0, SPEAK_ITEMS);
 }

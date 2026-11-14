@@ -4,8 +4,8 @@ import {
   ballUnlocked, currentBall, currentStadium, kitUnlocked, nextScoutPlayer, signPlayer, stadiumUnlocked, transfersLeft, unlockAchievements,
 } from './lib/club';
 import { content } from './lib/content';
-import { buildMatch, buildReview, type MatchPlan } from './lib/engine';
-import { newProgress, playTarget, recordAnswer, recordMatch } from './lib/progress';
+import { buildMatch, buildReview, buildWeakDrill, pickSpeakWords, type MatchPlan } from './lib/engine';
+import { newProgress, playTarget, recordAnswer, recordMatch, recordSpeakDrill } from './lib/progress';
 import { loadProgress, requestPersistence, saveProgress } from './lib/storage';
 import type { Achievement, ClubPlayer, MatchResult, Mission, Player, Progress } from './lib/types';
 import { AwardsScreen } from './screens/Awards';
@@ -16,12 +16,14 @@ import { Onboarding } from './screens/Onboarding';
 import { PlayScreen } from './screens/Play';
 import { Result } from './screens/Result';
 import { ScoutScreen } from './screens/Scout';
+import { SpeakScreen } from './screens/Speak';
 
 type Screen =
   | { name: 'tabs' }
   | { name: 'match'; plan: MatchPlan; run: number }
   | { name: 'result'; plan: MatchPlan; result: MatchResult; xpBefore: number; unlocked: Achievement[]; tokenEarned: boolean }
-  | { name: 'scout'; player: ClubPlayer; run: number };
+  | { name: 'scout'; player: ClubPlayer; run: number }
+  | { name: 'speak'; wordIds: string[]; run: number };
 
 const TOAST_MS = 4000;
 
@@ -77,6 +79,24 @@ export default function App() {
     const now = Date.now();
     const plan = mission ? buildMatch(mission, content, from, now) : buildReview(content, from, now);
     setScreen({ name: 'match', plan, run: nextRun() });
+  };
+
+  const startWeakDrill = () => setScreen({ name: 'match', plan: buildWeakDrill(content, progress, Date.now()), run: nextRun() });
+
+  const startSpeak = () => {
+    const wordIds = pickSpeakWords(content, progress, Date.now());
+    if (wordIds.length) setScreen({ name: 'speak', wordIds, run: nextRun() });
+  };
+
+  const finishSpeak = (practised: number) => {
+    const { progress: next, unlocked } = unlockAchievements(content, recordSpeakDrill(progress, practised), Date.now());
+    setProgress(next);
+    if (unlocked.length) setToast(`Нове досягнення: ${unlocked.map((a) => a.title).join(', ')}`);
+  };
+
+  const backTo = (target: Tab) => {
+    setTab(target);
+    setScreen({ name: 'tabs' });
   };
 
   const onboard = (player: Player) => {
@@ -136,7 +156,8 @@ export default function App() {
         settings={progress.settings}
         ball={currentBall(content, progress)}
         stadium={currentStadium(content, progress)}
-        onAnswer={(wordId, correct, mode) => update((p) => recordAnswer(p, wordId, correct, Date.now(), mode))}
+        hints={progress.adaptive.tier === 0}
+        onAnswer={(wordId, correct, mode, chosen) => update((p) => recordAnswer(p, wordId, correct, Date.now(), mode, chosen))}
         onFinish={(result) => finishMatch(screen.plan, result)}
         onExit={() => setScreen({ name: 'tabs' })}
       />
@@ -160,6 +181,17 @@ export default function App() {
           setTab('home');
           setScreen({ name: 'tabs' });
         }}
+      />
+    );
+  } else if (screen.name === 'speak') {
+    view = (
+      <SpeakScreen
+        key={screen.run}
+        wordIds={screen.wordIds}
+        content={content}
+        settings={progress.settings}
+        onDone={finishSpeak}
+        onClose={() => backTo('play')}
       />
     );
   } else if (screen.name === 'scout') {
@@ -186,7 +218,7 @@ export default function App() {
             onImport={setProgress}
           />
         )}
-        {tab === 'play' && <PlayScreen content={content} progress={progress} onPlay={startMatch} />}
+        {tab === 'play' && <PlayScreen content={content} progress={progress} onPlay={startMatch} onWeak={startWeakDrill} onSpeak={startSpeak} />}
         {tab === 'club' && (
           <ClubScreen content={content} progress={progress} onScout={startScout} onKit={chooseKit} onBall={chooseBall} onStadium={chooseStadium} />
         )}
