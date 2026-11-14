@@ -13,8 +13,8 @@ export interface PickStep {
   key: string;
   wordId: string;
   options: string[];
-  /** read: the English word is shown and spoken; listen: spoken only. */
-  mode: 'read' | 'listen';
+  /** read: the English word is shown and spoken; listen: spoken only; name: Ukrainian shown, pick the English word. */
+  mode: 'read' | 'listen' | 'name';
   shot: boolean;
   retry: boolean;
 }
@@ -42,6 +42,7 @@ export interface MatchPlan {
 export const REVIEW_ID = 'review';
 const OPTION_COUNT = 4;
 const LISTEN_COUNT = 4;
+const NAME_COUNT = 3;
 const REVIEW_WORDS = 8;
 const REVIEW_REWARD_XP = 15;
 
@@ -103,7 +104,8 @@ function withShots(
 
 /**
  * A match: new words are introduced three at a time and checked straight away,
- * then a listening round (mixed with words due for review), sentence building, and the shot.
+ * then a listening round (mixed with words due for review), a round of naming things in English,
+ * sentence building, and the shot.
  */
 export function buildMatch(mission: Mission, content: Content, progress: Progress, now: number, rng: Rng = Math.random): MatchPlan {
   for (const id of mission.words) if (!content.wordById.has(id)) throw new Error(`Unknown word: ${id}`);
@@ -125,6 +127,8 @@ export function buildMatch(mission: Mission, content: Content, progress: Progres
   const listenPool = uniq([...pool, ...due]);
   for (const id of shuffle(listenWords, rng)) body.push(makePick(`listen-${id}`, id, 'listen', listenPool, rng));
 
+  for (const id of shuffle(mission.words, rng).slice(0, NAME_COUNT)) body.push(makePick(`name-${id}`, id, 'name', pool, rng));
+
   for (const id of mission.sentences) body.push(makeBuild(`build-${id}`, id, content, rng));
 
   return withShots(mission.id, mission.title, mission.rewards.xp, body, mission.words, pool, rng);
@@ -142,9 +146,11 @@ export function buildReview(content: Content, progress: Progress, now: number, r
   const pool = optionPool(words, content, rng);
 
   const body: Step[] = [];
-  const half = Math.ceil(words.length / 2);
-  words.slice(0, half).forEach((id) => body.push(makePick(`read-${id}`, id, 'read', pool, rng)));
-  words.slice(half).forEach((id) => body.push(makePick(`listen-${id}`, id, 'listen', pool, rng)));
+  const modes: PickStep['mode'][] = ['read', 'listen', 'name'];
+  words.forEach((id, i) => {
+    const mode = modes[Math.floor((i * modes.length) / words.length)];
+    body.push(makePick(`${mode}-${id}`, id, mode, pool, rng));
+  });
   for (const s of shuffle(content.sentences, rng).slice(0, 2)) body.push(makeBuild(`build-${s.id}`, s.id, content, rng));
 
   return withShots(REVIEW_ID, 'Review Match', REVIEW_REWARD_XP, body, words, pool, rng);

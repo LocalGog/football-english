@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Check, Lock, Play, Settings as SettingsIcon } from 'lucide-react';
 import { Avatar } from '../components/Avatar';
 import { SettingsSheet } from '../components/SettingsSheet';
-import { goalsTotal, levelInfo, nextMission } from '../lib/progress';
+import { goalsTotal, levelInfo, playTarget } from '../lib/progress';
 import { learnedCount } from '../lib/srs';
 import type { Content, Mission, Progress, Settings } from '../lib/types';
 
@@ -11,20 +11,23 @@ interface Props {
   progress: Progress;
   onPlay: (mission: Mission | null) => void;
   onSettings: (settings: Settings) => void;
+  onImport: (progress: Progress) => void;
 }
 
-export function Home({ content, progress, onPlay, onSettings }: Props) {
+export function Home({ content, progress, onPlay, onSettings, onImport }: Props) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const player = progress.player;
   const lvl = levelInfo(progress.xp);
-  const upcoming = nextMission(content.missions, progress);
+  const target = playTarget(content, progress);
+  const upcoming = target.kind === 'mission' ? target.mission : null;
+  const gatedLevel = target.kind === 'review' && target.reason === 'gate' ? target.level : null;
   const played = content.missions.filter((m) => progress.missions[m.id]?.completed > 0).length;
   const nextStatus = levelInfo(lvl.level * lvl.need).status;
 
   const tiles = [
     { label: 'Слів вивчено', value: `${learnedCount(progress)}/${content.words.length}` },
     { label: 'Голів', value: String(goalsTotal(progress)) },
-    { label: 'Сезон', value: `${played}/${content.missions.length}` },
+    { label: 'Матчів', value: `${played}/${content.missions.length}` },
   ];
 
   return (
@@ -39,7 +42,7 @@ export function Home({ content, progress, onPlay, onSettings }: Props) {
           <button
             className="flex size-11 items-center justify-center rounded-xl border border-line text-mute"
             onClick={() => setSettingsOpen(true)}
-            aria-label="Налаштування звуку"
+            aria-label="Налаштування"
           >
             <SettingsIcon size={22} />
           </button>
@@ -69,10 +72,19 @@ export function Home({ content, progress, onPlay, onSettings }: Props) {
           ))}
         </section>
 
-        <section>
-          <h2 className="display mb-2 text-xl">Сезон 1 · Football Starter</h2>
+        {content.levels.map((lvlDef) => (
+        <section key={lvlDef.level}>
+          <h2 className="display mb-2 text-xl">
+            Сезон {lvlDef.level} · {lvlDef.title}
+          </h2>
+          {gatedLevel === lvlDef.level && target.kind === 'review' && target.reason === 'gate' && (
+            <p className="mb-2 rounded-2xl border border-gold/60 bg-gold/10 px-3 py-2 text-sm">
+              Сезон відкриється, коли вивчиш ще {target.missing} сл. з попередніх матчів. Грай тренувальні матчі кнопкою Play now.
+            </p>
+          )}
           <ol className="flex flex-col gap-2">
             {content.missions.map((m, i) => {
+              if (m.level !== lvlDef.level) return null;
               const doneCount = progress.missions[m.id]?.completed ?? 0;
               const isNext = upcoming?.id === m.id;
               const body = (
@@ -106,23 +118,31 @@ export function Home({ content, progress, onPlay, onSettings }: Props) {
             })}
           </ol>
         </section>
+        ))}
       </main>
 
       <footer className="border-t border-line bg-night/95 p-4">
         <button
           className="display flex h-18 w-full flex-col items-center justify-center rounded-2xl bg-gold py-3 text-night active:scale-[0.98]"
           onClick={() => onPlay(upcoming)}
+          data-play-now
         >
           <span className="flex items-center gap-2 text-3xl leading-none">
             <Play size={26} fill="currentColor" /> Play now
           </span>
           <span className="mt-1 text-sm font-semibold not-italic normal-case">
-            {upcoming ? `Матч ${content.missions.indexOf(upcoming) + 1} · ${upcoming.title}` : 'Тренувальний матч на повторення'}
+            {upcoming
+              ? `Матч ${content.missions.indexOf(upcoming) + 1} · ${upcoming.title}`
+              : gatedLevel
+                ? `Тренувальний матч · шлях до сезону ${gatedLevel}`
+                : 'Тренувальний матч на повторення'}
           </span>
         </button>
       </footer>
 
-      {settingsOpen && <SettingsSheet settings={progress.settings} onChange={onSettings} onClose={() => setSettingsOpen(false)} />}
+      {settingsOpen && (
+        <SettingsSheet progress={progress} onChange={onSettings} onImport={onImport} onClose={() => setSettingsOpen(false)} />
+      )}
     </div>
   );
 }

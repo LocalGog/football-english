@@ -1,5 +1,5 @@
-import type { Accent, MatchResult, Mission, Progress, WordStat } from './types';
-import { applyAnswer } from './srs';
+import type { Accent, Content, MatchResult, Mission, Progress, WordStat } from './types';
+import { applyAnswer, LEARNED_MASTERY } from './srs';
 
 export const XP_PER_LEVEL = 150;
 export const XP_FIRST_TRY = 10;
@@ -96,6 +96,29 @@ export function recordMatch(p: Progress, r: MatchResult): Progress {
 /** First mission not yet finished, or null when the whole season is done. */
 export function nextMission(missions: Mission[], p: Progress): Mission | null {
   return missions.find((m) => !(p.missions[m.id]?.completed > 0)) ?? null;
+}
+
+/** Share of the earlier seasons' words that must be learned before a new season opens. */
+export const LEVEL_GATE = 0.6;
+
+export type PlayTarget =
+  | { kind: 'mission'; mission: Mission }
+  /** The next season is closed until more of the earlier words are learned. */
+  | { kind: 'review'; reason: 'gate'; level: number; missing: number }
+  | { kind: 'review'; reason: 'done' };
+
+/**
+ * What PLAY NOW starts. Seasons open by knowledge, not by matches played:
+ * finishing a season is not enough if too few of its words have stuck.
+ */
+export function playTarget(content: Content, p: Progress): PlayTarget {
+  const mission = nextMission(content.missions, p);
+  if (!mission) return { kind: 'review', reason: 'done' };
+  const earlier = new Set(content.missions.filter((m) => m.level < mission.level).flatMap((m) => m.words));
+  if (earlier.size === 0) return { kind: 'mission', mission };
+  const learned = [...earlier].filter((id) => (p.words[id]?.mastery ?? 0) >= LEARNED_MASTERY).length;
+  const missing = Math.ceil(earlier.size * LEVEL_GATE) - learned;
+  return missing > 0 ? { kind: 'review', reason: 'gate', level: mission.level, missing } : { kind: 'mission', mission };
 }
 
 export function goalsTotal(p: Progress): number {

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { content } from './lib/content';
 import { buildMatch, buildReview, type MatchPlan } from './lib/engine';
-import { newProgress, nextMission, recordAnswer, recordMatch } from './lib/progress';
+import { newProgress, playTarget, recordAnswer, recordMatch } from './lib/progress';
 import { loadProgress, requestPersistence, saveProgress } from './lib/storage';
 import type { MatchResult, Mission, Player, Progress } from './lib/types';
 import { Home } from './screens/Home';
@@ -91,7 +91,10 @@ export default function App() {
         plan={screen.plan}
         result={screen.result}
         xpBefore={screen.xpBefore}
-        onNext={() => startMatch(nextMission(content.missions, progress))}
+        onNext={() => {
+          const target = playTarget(content, progress);
+          startMatch(target.kind === 'mission' ? target.mission : null);
+        }}
         onHome={() => setScreen({ name: 'home' })}
       />
     );
@@ -102,6 +105,7 @@ export default function App() {
         progress={progress}
         onPlay={startMatch}
         onSettings={(settings) => setProgress((p) => (p ? { ...p, settings } : p))}
+        onImport={setProgress}
       />
     );
   }

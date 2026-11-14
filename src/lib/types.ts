@@ -29,7 +29,13 @@ export interface Mission {
   estimated_duration: number;
 }
 
+export interface Level {
+  level: number;
+  title: string;
+}
+
 export interface Content {
+  levels: Level[];
   words: Word[];
   sentences: Sentence[];
   missions: Mission[];

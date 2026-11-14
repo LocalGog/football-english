@@ -218,7 +218,7 @@ function IntroView({ step, content, say, onNext }: { step: IntroStep; content: C
           </button>
         )}
       </div>
-      <button className="display flex h-16 shrink-0 items-center justify-center gap-2 rounded-2xl bg-pitch text-2xl text-chalk" onClick={onNext}>
+      <button className="display sticky bottom-0 flex h-16 shrink-0 items-center justify-center gap-2 rounded-2xl bg-pitch text-2xl text-chalk shadow-[0_0_0_8px_var(--color-night)]" onClick={onNext}>
         Далі <ArrowRight size={24} />
       </button>
     </div>
@@ -237,8 +237,10 @@ interface PickProps {
 function PickView({ step, content, say, speechStatus, locked, onAnswer }: PickProps) {
   const word = mustWord(content, step.wordId);
   const [chosen, setChosen] = useState<string | null>(null);
+  const naming = step.mode === 'name';
   useEffect(() => {
-    say(word.english);
+    // In a naming task the spoken word would give the answer away.
+    if (!naming) say(word.english);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -250,9 +252,46 @@ function PickView({ step, content, say, speechStatus, locked, onAnswer }: PickPr
     if (chosen !== null || locked) return;
     setChosen(id);
     const correct = id === step.wordId;
-    if (!correct) say(word.english);
+    if (!correct || naming) say(word.english);
     onAnswer(correct, `${word.english} — ${word.ukrainian}`);
   };
+
+  const lookFor = (id: string) => {
+    const state = chosen === null ? 'idle' : id === step.wordId ? 'right' : id === chosen ? 'wrong' : 'dim';
+    return {
+      idle: 'border-line bg-panel active:scale-95',
+      right: 'border-pitch bg-pitch/25',
+      wrong: 'anim-shake border-miss bg-miss/20',
+      dim: 'border-line bg-panel opacity-40',
+    }[state];
+  };
+
+  if (naming) {
+    return (
+      <div className="flex flex-1 flex-col gap-4">
+        <div className="flex flex-col items-center gap-2 py-2 text-center">
+          <p className="text-sm font-semibold uppercase tracking-widest text-mute">Як це англійською?</p>
+          <WordImage word={word} className="text-7xl" />
+          <p className="text-2xl font-semibold text-gold" data-prompt="name">
+            {word.ukrainian}
+          </p>
+        </div>
+        <div className="flex flex-1 flex-col justify-center gap-3">
+          {step.options.map((id) => (
+            <button
+              key={id}
+              className={`display min-h-16 break-words rounded-2xl border-2 px-4 py-3 text-2xl not-italic normal-case transition ${lookFor(id)}`}
+              onClick={() => choose(id)}
+              disabled={chosen !== null || locked}
+              data-option={id}
+            >
+              {mustWord(content, id).english}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-1 flex-col gap-4">
@@ -267,14 +306,7 @@ function PickView({ step, content, say, speechStatus, locked, onAnswer }: PickPr
       <div className="grid flex-1 grid-cols-2 content-center gap-3">
         {step.options.map((id) => {
           const option = mustWord(content, id);
-          const state =
-            chosen === null ? 'idle' : id === step.wordId ? 'right' : id === chosen ? 'wrong' : 'dim';
-          const look = {
-            idle: 'border-line bg-panel active:scale-95',
-            right: 'border-pitch bg-pitch/25',
-            wrong: 'anim-shake border-miss bg-miss/20',
-            dim: 'border-line bg-panel opacity-40',
-          }[state];
+          const look = lookFor(id);
           return (
             <button
               key={id}
@@ -362,7 +394,7 @@ function BuildView({ step, content, say, locked, onAnswer }: BuildProps) {
       </div>
       {checked === null && (
         <button
-          className="display h-16 rounded-2xl bg-pitch text-2xl text-chalk disabled:bg-panel disabled:text-mute"
+          className="display sticky bottom-0 h-16 shrink-0 rounded-2xl bg-pitch text-2xl text-chalk shadow-[0_0_0_8px_var(--color-night)] disabled:bg-panel disabled:text-mute"
           onClick={check}
           disabled={placed.length !== step.tokens.length || locked}
         >

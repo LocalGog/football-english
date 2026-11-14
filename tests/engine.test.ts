@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { content, validateContent } from '../src/lib/content';
 import { buildMatch, buildReview, tokenize, type MatchPlan, type Rng } from '../src/lib/engine';
-import { levelInfo, newProgress, nextMission, normalizeProgress, recordAnswer, recordMatch } from '../src/lib/progress';
+import { backupFileName, parseBackup, serializeBackup } from '../src/lib/backup';
+import { LEVEL_GATE, levelInfo, newProgress, nextMission, normalizeProgress, playTarget, recordAnswer, recordMatch } from '../src/lib/progress';
+import type { Progress } from '../src/lib/types';
 import { applyAnswer, dueWordIds, INTERVALS_MS, learnedCount } from '../src/lib/srs';
 
 function seeded(seed: number): Rng {
@@ -36,6 +38,19 @@ describe('content', () => {
   it('is internally consistent', () => {
     expect(validateContent(content)).toEqual([]);
   });
+  it('meets the stage-1 volume: 200 words, 30 missions, 50 sentences', () => {
+    expect(content.words.length).toBeGreaterThanOrEqual(200);
+    expect(content.missions.length).toBeGreaterThanOrEqual(30);
+    expect(content.sentences.length).toBeGreaterThanOrEqual(50);
+  });
+  it('missions are ordered by level', () => {
+    const levels = content.missions.map((m) => m.level);
+    expect(levels).toEqual([...levels].sort((a, b) => a - b));
+  });
+  it('every sentence is used by some mission', () => {
+    const used = new Set(content.missions.flatMap((m) => m.sentences));
+    expect(content.sentences.filter((s) => !used.has(s.id)).map((s) => s.id)).toEqual([]);
+  });
   it('every word is taught by some mission', () => {
     const taught = new Set(content.missions.flatMap((m) => m.words));
     expect(content.words.filter((w) => !taught.has(w.id)).map((w) => w.id)).toEqual([]);
@@ -47,6 +62,12 @@ describe('engine', () => {
     for (const mission of content.missions) {
       for (let seed = 1; seed <= 40; seed++) checkPlan(buildMatch(mission, content, newProgress(), 0, seeded(seed)));
     }
+  });
+
+  it('uses all three question modes in a match and in a review', () => {
+    const modes = (plan: MatchPlan) => new Set(plan.steps.flatMap((s) => (s.kind === 'pick' && !s.shot ? [s.mode] : [])));
+    expect(modes(buildMatch(content.missions[0], content, newProgress(), 0, seeded(2)))).toEqual(new Set(['read', 'listen', 'name']));
+    expect(modes(buildReview(content, newProgress(), 0, seeded(2)))).toEqual(new Set(['read', 'listen', 'name']));
   });
 
   it('introduces only words the player has not met', () => {
@@ -95,6 +116,51 @@ describe('spaced repetition', () => {
     expect(learnedCount(p)).toBe(0);
     p = recordAnswer(p, 'ball', true, 0);
     expect(learnedCount(p)).toBe(1);
+  });
+});
+
+describe('season gate', () => {
+  const finishLevel = (p: Progress, level: number): Progress =>
+    content.missions
+      .filter((m) => m.level === level)
+      .reduce((acc, m) => recordMatch(acc, { missionId: m.id, correct: 1, total: 1, goal: false, xp: 1, seconds: 1 }), p);
+  const learn = (p: Progress, ids: string[]): Progress =>
+    ids.reduce((acc, id) => recordAnswer(recordAnswer(acc, id, true, 0), id, true, 0), p);
+  const level1Words = [...new Set(content.missions.filter((m) => m.level === 1).flatMap((m) => m.words))];
+
+  it('starts with the first mission', () => {
+    expect(playTarget(content, newProgress())).toEqual({ kind: 'mission', mission: content.missions[0] });
+  });
+  it('keeps season 2 closed until enough season 1 words are learned', () => {
+    const played = finishLevel(newProgress(), 1);
+    const need = Math.ceil(level1Words.length * LEVEL_GATE);
+    expect(playTarget(content, played)).toEqual({ kind: 'review', reason: 'gate', level: 2, missing: need });
+    const almost = learn(played, level1Words.slice(0, need - 1));
+    expect(playTarget(content, almost)).toMatchObject({ reason: 'gate', missing: 1 });
+    const enough = learn(played, level1Words.slice(0, need));
+    expect(playTarget(content, enough)).toMatchObject({ kind: 'mission', mission: { level: 2 } });
+  });
+  it('offers free review once every mission is done', () => {
+    let p = newProgress();
+    for (const l of content.levels) p = finishLevel(p, l.level);
+    expect(playTarget(content, p)).toEqual({ kind: 'review', reason: 'done' });
+  });
+});
+
+describe('backup', () => {
+  const now = new Date('2026-11-14T10:00:00Z');
+  const p = recordAnswer({ ...newProgress(), player: { name: 'Max', avatar: 'blue' }, xp: 70 }, 'ball', true, 5);
+  it('round-trips progress', () => {
+    expect(parseBackup(serializeBackup(p, now))).toEqual(p);
+    expect(backupFileName(now)).toBe('football-english-backup-2026-11-14.json');
+  });
+  it('rejects anything that is not our backup', () => {
+    expect(parseBackup('not json')).toBeNull();
+    expect(parseBackup('[]')).toBeNull();
+    expect(parseBackup(JSON.stringify({ app: 'other', progress: p }))).toBeNull();
+    expect(parseBackup(JSON.stringify({ app: 'football-english', progress: { version: 9 } }))).toBeNull();
+    expect(parseBackup(JSON.stringify({ app: 'football-english', progress: newProgress() }))).toBeNull(); // no player
+    expect(parseBackup('x'.repeat(1_000_001))).toBeNull();
   });
 });
 
