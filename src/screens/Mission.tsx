@@ -3,7 +3,8 @@ import { ArrowRight, Turtle, Volume2, X } from 'lucide-react';
 import type { BuildStep, IntroStep, MatchPlan, PickStep, Step } from '../lib/engine';
 import { XP_FIRST_TRY, XP_GOAL, XP_RETRY } from '../lib/progress';
 import { speak, stopSpeaking, useSpeechStatus, type SpeechStatus } from '../lib/speech';
-import type { Content, MatchResult, Settings, Word } from '../lib/types';
+import type { BallSkin, Content, MatchResult, PickMode, Settings, Stadium, Word } from '../lib/types';
+import { Ball } from '../components/Ball';
 import { Pitch } from '../components/Pitch';
 import { WordImage } from '../components/WordImage';
 
@@ -16,7 +17,9 @@ interface Props {
   plan: MatchPlan;
   content: Content;
   settings: Settings;
-  onAnswer: (wordId: string, correct: boolean) => void;
+  ball: BallSkin;
+  stadium: Stadium;
+  onAnswer: (wordId: string, correct: boolean, mode: PickMode) => void;
   onFinish: (result: MatchResult) => void;
   onExit: () => void;
 }
@@ -35,7 +38,7 @@ function mustWord(content: Content, id: string): Word {
   return w;
 }
 
-export function MissionScreen({ plan, content, settings, onAnswer, onFinish, onExit }: Props) {
+export function MissionScreen({ plan, content, settings, ball, stadium, onAnswer, onFinish, onExit }: Props) {
   const [queue, setQueue] = useState<Step[]>(plan.steps);
   const [idx, setIdx] = useState(0);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
@@ -86,7 +89,7 @@ export function MissionScreen({ plan, content, settings, onAnswer, onFinish, onE
 
   const answer = (correct: boolean, rightAnswer: string) => {
     if (feedback || step.kind === 'intro') return;
-    if (step.kind === 'pick') onAnswer(step.wordId, correct);
+    if (step.kind === 'pick') onAnswer(step.wordId, correct, step.mode);
     if (correct) setScore((s) => (step.retry ? { ...s, retry: s.retry + 1 } : { ...s, first: s.first + 1 }));
 
     if (step.kind === 'pick' && step.shot) {
@@ -133,7 +136,7 @@ export function MissionScreen({ plan, content, settings, onAnswer, onFinish, onE
             {Math.min(done, plan.questionCount)}/{plan.questionCount}
           </p>
         </div>
-        <Pitch progress={done / plan.questionCount} goal={goal} />
+        <Pitch progress={done / plan.questionCount} goal={goal} ball={ball} stadium={stadium} />
       </header>
 
       <main className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pb-4 pt-4">
@@ -166,7 +169,9 @@ export function MissionScreen({ plan, content, settings, onAnswer, onFinish, onE
 
       {goal && (
         <div className="fixed inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-night/85" role="status">
-          <p className="anim-pop text-7xl" aria-hidden="true">⚽</p>
+          <div className="anim-pop">
+            <Ball skin={ball} size={88} />
+          </div>
           <p className="display anim-pop text-7xl text-gold">Goal!</p>
           <p className="anim-rise text-lg text-chalk">Ти забив!</p>
         </div>

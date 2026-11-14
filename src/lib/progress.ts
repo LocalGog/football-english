@@ -1,4 +1,4 @@
-import type { Accent, Content, MatchResult, Mission, Progress, WordStat } from './types';
+import type { Accent, Content, MatchResult, Mission, PickMode, Progress, WordStat } from './types';
 import { applyAnswer, LEARNED_MASTERY } from './srs';
 
 export const XP_PER_LEVEL = 150;
@@ -16,7 +16,9 @@ export function newProgress(): Progress {
     missions: {},
     words: {},
     settings: { accent: 'en-GB', rate: 0.9 },
-    stats: { secondsPlayed: 0 },
+    stats: { secondsPlayed: 0, perfectMatches: 0, listenCorrect: 0, days: [] },
+    club: { cards: [], tokens: 0, ball: 'classic', stadium: 'street' },
+    achievements: {},
   };
 }
 
@@ -32,6 +34,9 @@ export function levelInfo(xp: number): { level: number; into: number; need: numb
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const num = (v: unknown, fallback: number): number => (typeof v === 'number' && Number.isFinite(v) ? v : fallback);
+const strings = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
+const MAX_DAYS = 400;
+export const MAX_TOKENS = 99;
 const numOrNull = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null);
 
 /** Turns whatever came out of storage into a safe Progress, or null if it is not ours. */
@@ -68,16 +73,54 @@ export function normalizeProgress(raw: unknown): Progress | null {
     const accent: Accent = raw.settings.accent === 'en-US' ? 'en-US' : 'en-GB';
     base.settings = { accent, rate: Math.min(1.1, Math.max(0.5, num(raw.settings.rate, 0.9))) };
   }
-  if (isObj(raw.stats)) base.stats.secondsPlayed = Math.max(0, num(raw.stats.secondsPlayed, 0));
+  if (isObj(raw.stats)) {
+    base.stats = {
+      secondsPlayed: Math.max(0, num(raw.stats.secondsPlayed, 0)),
+      perfectMatches: Math.max(0, Math.floor(num(raw.stats.perfectMatches, 0))),
+      listenCorrect: Math.max(0, Math.floor(num(raw.stats.listenCorrect, 0))),
+      days: strings(raw.stats.days).slice(-MAX_DAYS),
+    };
+  }
+  // Saves made before the club existed simply get an empty club.
+  if (isObj(raw.club)) {
+    base.club = {
+      cards: [...new Set(strings(raw.club.cards))],
+      tokens: Math.min(MAX_TOKENS, Math.max(0, Math.floor(num(raw.club.tokens, 0)))),
+      ball: typeof raw.club.ball === 'string' ? raw.club.ball : base.club.ball,
+      stadium: typeof raw.club.stadium === 'string' ? raw.club.stadium : base.club.stadium,
+    };
+  }
+  if (isObj(raw.achievements)) {
+    for (const [id, at] of Object.entries(raw.achievements)) {
+      if (typeof at === 'number' && Number.isFinite(at)) base.achievements[id] = at;
+    }
+  }
   return base;
 }
 
-export function recordAnswer(p: Progress, wordId: string, correct: boolean, now: number): Progress {
-  return { ...p, words: { ...p.words, [wordId]: applyAnswer(p.words[wordId], correct, now) } };
+export function recordAnswer(p: Progress, wordId: string, correct: boolean, now: number, mode?: PickMode): Progress {
+  const heard = correct && mode === 'listen';
+  return {
+    ...p,
+    words: { ...p.words, [wordId]: applyAnswer(p.words[wordId], correct, now) },
+    stats: heard ? { ...p.stats, listenCorrect: p.stats.listenCorrect + 1 } : p.stats,
+  };
 }
 
-export function recordMatch(p: Progress, r: MatchResult): Progress {
+/** Local calendar date, so "a different day" means the player's day, not UTC. */
+export function localDay(now: number): string {
+  const d = new Date(now);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/**
+ * @param transfersLeft whether there is still someone to sign: a goal then earns a transfer.
+ */
+export function recordMatch(p: Progress, r: MatchResult, now: number, transfersLeft: boolean): Progress {
   const prev = p.missions[r.missionId] ?? { completed: 0, goals: 0, bestCorrect: 0 };
+  const day = localDay(now);
+  const perfect = r.goal && r.correct === r.total;
   return {
     ...p,
     xp: p.xp + r.xp,
@@ -89,7 +132,13 @@ export function recordMatch(p: Progress, r: MatchResult): Progress {
         bestCorrect: Math.max(prev.bestCorrect, r.correct),
       },
     },
-    stats: { secondsPlayed: p.stats.secondsPlayed + r.seconds },
+    stats: {
+      ...p.stats,
+      secondsPlayed: p.stats.secondsPlayed + r.seconds,
+      perfectMatches: p.stats.perfectMatches + (perfect ? 1 : 0),
+      days: p.stats.days.includes(day) ? p.stats.days : [...p.stats.days, day].slice(-MAX_DAYS),
+    },
+    club: r.goal && transfersLeft ? { ...p.club, tokens: Math.min(MAX_TOKENS, p.club.tokens + 1) } : p.club,
   };
 }
 

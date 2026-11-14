@@ -2,10 +2,23 @@ import wordsJson from '../content/words.json';
 import sentencesJson from '../content/sentences.json';
 import missionsJson from '../content/missions.json';
 import levelsJson from '../content/levels.json';
-import type { Content, Level, Mission, Sentence, Word } from './types';
+import playersJson from '../content/players.json';
+import clubJson from '../content/club.json';
+import achievementsJson from '../content/achievements.json';
+import type { Achievement, BallSkin, ClubPlayer, Content, Kit, Level, Mission, Rival, Sentence, Stadium, Word } from './types';
 
-export function makeContent(words: Word[], sentences: Sentence[], missions: Mission[], levels: Level[]): Content {
+export interface ClubCatalog {
+  players: ClubPlayer[];
+  kits: Kit[];
+  balls: BallSkin[];
+  stadiums: Stadium[];
+  rivals: Rival[];
+  achievements: Achievement[];
+}
+
+export function makeContent(words: Word[], sentences: Sentence[], missions: Mission[], levels: Level[], club: ClubCatalog): Content {
   return {
+    ...club,
     levels,
     words,
     sentences,
@@ -44,6 +57,22 @@ export function validateContent(c: Content): string[] {
     for (const id of m.words) if (!c.wordById.has(id)) problems.push(`mission ${m.id}: unknown word ${id}`);
     for (const id of m.sentences) if (!c.sentenceById.has(id)) problems.push(`mission ${m.id}: unknown sentence ${id}`);
   }
+  dup(c.players.map((p) => p.id), 'player');
+  dup(c.players.map((p) => p.name), 'player name');
+  dup(c.achievements.map((a) => a.id), 'achievement');
+  const category = (id: string) => c.wordById.get(id)?.category;
+  for (const p of c.players) {
+    if (category(p.position) !== 'positions') problems.push(`player ${p.id}: position ${p.position} is not a position word`);
+    if (category(p.number) !== 'numbers') problems.push(`player ${p.id}: number ${p.number} is not a number word`);
+    if (category(p.colour) !== 'colours') problems.push(`player ${p.id}: colour ${p.colour} is not a colour word`);
+    if (category(p.trait) !== 'describing') problems.push(`player ${p.id}: trait ${p.trait} is not a describing word`);
+  }
+  for (const b of c.balls) {
+    if (b.achievement && !c.achievements.some((a) => a.id === b.achievement)) problems.push(`ball ${b.id}: unknown achievement ${b.achievement}`);
+  }
+  if (!c.kits.some((k) => k.level <= 1)) problems.push('no starter kit');
+  if (!c.balls.some((b) => b.achievement === null)) problems.push('no starter ball');
+  if (!c.stadiums.some((s) => s.words === 0)) problems.push('no starter stadium');
   return problems;
 }
 
@@ -52,4 +81,12 @@ export const content: Content = makeContent(
   sentencesJson as Sentence[],
   missionsJson as Mission[],
   levelsJson as Level[],
+  {
+    players: playersJson as ClubPlayer[],
+    kits: clubJson.kits as Kit[],
+    balls: clubJson.balls as BallSkin[],
+    stadiums: clubJson.stadiums as Stadium[],
+    rivals: clubJson.rivals as Rival[],
+    achievements: achievementsJson as Achievement[],
+  },
 );

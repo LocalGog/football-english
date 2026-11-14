@@ -1,13 +1,16 @@
 import { useState, type FormEvent } from 'react';
 import { Play } from 'lucide-react';
-import { AVATARS, Avatar, DEFAULT_AVATAR } from '../components/Avatar';
+import { Avatar } from '../components/Avatar';
+import { content } from '../lib/content';
 import type { Player } from '../lib/types';
 
 const MAX_NAME = 16;
+/** Kits available from the first day; the rest are earned by levelling up. */
+const STARTER_KITS = content.kits.filter((k) => k.level <= 1);
 
 export function Onboarding({ onDone }: { onDone: (player: Player) => void }) {
   const [name, setName] = useState('');
-  const [avatar, setAvatar] = useState<string>(DEFAULT_AVATAR);
+  const [avatar, setAvatar] = useState<string>(STARTER_KITS[0].id);
   const clean = name.trim().slice(0, MAX_NAME);
 
   const submit = (e: FormEvent) => {
@@ -43,7 +46,7 @@ export function Onboarding({ onDone }: { onDone: (player: Player) => void }) {
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-2 text-sm font-semibold uppercase tracking-widest text-mute">Обери форму</legend>
         <div className="grid grid-cols-3 gap-3">
-          {AVATARS.map((a) => (
+          {STARTER_KITS.map((a) => (
             <button
               key={a.id}
               type="button"

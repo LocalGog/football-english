@@ -1,8 +1,8 @@
-import { ArrowRight, Home as HomeIcon, Volume2 } from 'lucide-react';
+import { ArrowRight, Home as HomeIcon, Trophy, UserPlus, Volume2 } from 'lucide-react';
 import type { MatchPlan } from '../lib/engine';
 import { levelInfo } from '../lib/progress';
 import { speak } from '../lib/speech';
-import type { Content, MatchResult, Progress } from '../lib/types';
+import type { Achievement, Content, MatchResult, Progress } from '../lib/types';
 import { WordImage } from '../components/WordImage';
 
 interface Props {
@@ -11,11 +11,14 @@ interface Props {
   plan: MatchPlan;
   result: MatchResult;
   xpBefore: number;
+  unlocked: Achievement[];
+  tokenEarned: boolean;
+  onClub: () => void;
   onNext: () => void;
   onHome: () => void;
 }
 
-export function Result({ content, progress, plan, result, xpBefore, onNext, onHome }: Props) {
+export function Result({ content, progress, plan, result, xpBefore, unlocked, tokenEarned, onClub, onNext, onHome }: Props) {
   const before = levelInfo(xpBefore);
   const after = levelInfo(progress.xp);
   const wordIds = [...new Set(plan.steps.flatMap((s) => (s.kind === 'pick' && !s.shot ? [s.wordId] : [])))];
@@ -45,6 +48,34 @@ export function Result({ content, progress, plan, result, xpBefore, onNext, onHo
             </p>
           )}
         </section>
+
+        {(unlocked.length > 0 || tokenEarned) && (
+          <section className="flex flex-col gap-2">
+            {unlocked.map((a) => (
+              <div key={a.id} className="anim-pop flex items-center gap-3 rounded-2xl border-2 border-gold bg-gold/10 p-3" data-new-achievement={a.id}>
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-gold text-night">
+                  <Trophy size={22} />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-mute">Нове досягнення</p>
+                  <p className="display text-lg not-italic leading-tight">{a.title}</p>
+                </div>
+              </div>
+            ))}
+            {tokenEarned && (
+              <button className="flex items-center gap-3 rounded-2xl border-2 border-pitch bg-pitch/15 p-3 text-left" onClick={onClub} data-token-earned>
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-pitch text-chalk">
+                  <UserPlus size={22} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="display block text-lg not-italic leading-tight">+1 трансфер</span>
+                  <span className="block text-sm text-mute">Відкрий клуб і підпиши нового гравця</span>
+                </span>
+                <ArrowRight size={20} className="shrink-0 text-mute" />
+              </button>
+            )}
+          </section>
+        )}
 
         <section>
           <h2 className="display mb-2 text-xl">Слова цього матчу</h2>

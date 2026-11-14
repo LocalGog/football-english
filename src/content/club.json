@@ -1,0 +1,38 @@
+{
+  "kits": [
+    {"id":"gold","main":"#ffc83d","trim":"#08111f","pattern":"plain","level":1},
+    {"id":"red","main":"#e5383b","trim":"#f2f6fb","pattern":"plain","level":1},
+    {"id":"blue","main":"#2f6fed","trim":"#f2f6fb","pattern":"plain","level":1},
+    {"id":"green","main":"#1c9a55","trim":"#ffc83d","pattern":"plain","level":1},
+    {"id":"white","main":"#f2f6fb","trim":"#08111f","pattern":"plain","level":1},
+    {"id":"purple","main":"#7b3fe4","trim":"#ffc83d","pattern":"plain","level":1},
+    {"id":"stripes","main":"#f2f6fb","trim":"#08111f","accent":"#e5383b","pattern":"stripes","level":3},
+    {"id":"hoops","main":"#1c9a55","trim":"#08111f","accent":"#f2f6fb","pattern":"hoops","level":5},
+    {"id":"sash","main":"#08111f","trim":"#ffc83d","accent":"#ffc83d","pattern":"sash","level":8},
+    {"id":"royal","main":"#2f6fed","trim":"#ffc83d","accent":"#ffc83d","pattern":"stripes","level":12}
+  ],
+  "balls": [
+    {"id":"classic","name":"Classic","base":"#f2f6fb","mark":"#08111f","achievement":null},
+    {"id":"golden","name":"Golden","base":"#ffc83d","mark":"#7a5200","achievement":"first-goal"},
+    {"id":"fire","name":"Fire","base":"#ff7a2f","mark":"#7a1500","achievement":"perfect-match"},
+    {"id":"ice","name":"Ice","base":"#bfe9ff","mark":"#1d5fa8","achievement":"listening-master"},
+    {"id":"night","name":"Night","base":"#3b2a7a","mark":"#ffc83d","achievement":"seven-days"},
+    {"id":"genius","name":"Genius","base":"#1c9a55","mark":"#f2f6fb","achievement":"football-genius"}
+  ],
+  "stadiums": [
+    {"id":"street","name":"Street Pitch","description":"Двір, де все починається","words":0,"light":"#5d8f4a","dark":"#4c7a3c"},
+    {"id":"school","name":"School Field","description":"Шкільне поле","words":20,"light":"#2fa65f","dark":"#238a4d"},
+    {"id":"academy","name":"Academy Ground","description":"База академії","words":60,"light":"#1c9a55","dark":"#0e6a3a"},
+    {"id":"arena","name":"City Arena","description":"Міська арена","words":120,"light":"#18a36b","dark":"#0b5f47"},
+    {"id":"champions","name":"Champions Stadium","description":"Стадіон чемпіонів","words":200,"light":"#12b07a","dark":"#064a3c"}
+  ],
+  "rivals": [
+    {"id":"r1","name":"River Town","strength":0.2},
+    {"id":"r2","name":"North Stars","strength":0.75},
+    {"id":"r3","name":"Old Bridge","strength":0.45},
+    {"id":"r4","name":"Green Park","strength":0.3},
+    {"id":"r5","name":"Blue Harbour","strength":0.6},
+    {"id":"r6","name":"Iron City","strength":0.9},
+    {"id":"r7","name":"Sunny Hill","strength":0.1}
+  ]
+}

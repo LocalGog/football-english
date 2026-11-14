@@ -123,7 +123,7 @@ describe('season gate', () => {
   const finishLevel = (p: Progress, level: number): Progress =>
     content.missions
       .filter((m) => m.level === level)
-      .reduce((acc, m) => recordMatch(acc, { missionId: m.id, correct: 1, total: 1, goal: false, xp: 1, seconds: 1 }), p);
+      .reduce((acc, m) => recordMatch(acc, { missionId: m.id, correct: 1, total: 1, goal: false, xp: 1, seconds: 1 }, 0, true), p);
   const learn = (p: Progress, ids: string[]): Progress =>
     ids.reduce((acc, id) => recordAnswer(recordAnswer(acc, id, true, 0), id, true, 0), p);
   const level1Words = [...new Set(content.missions.filter((m) => m.level === 1).flatMap((m) => m.words))];
@@ -174,12 +174,12 @@ describe('progress', () => {
   it('records a match and unlocks the next mission', () => {
     const p0 = newProgress();
     expect(nextMission(content.missions, p0)?.id).toBe('m01');
-    const p1 = recordMatch(p0, { missionId: 'm01', correct: 10, total: 13, goal: true, xp: 150, seconds: 200 });
+    const p1 = recordMatch(p0, { missionId: 'm01', correct: 10, total: 13, goal: true, xp: 150, seconds: 200 }, 0, true);
     expect(p1.xp).toBe(150);
     expect(p1.missions.m01).toEqual({ completed: 1, goals: 1, bestCorrect: 10 });
     expect(nextMission(content.missions, p1)?.id).toBe('m02');
     let all = p0;
-    for (const m of content.missions) all = recordMatch(all, { missionId: m.id, correct: 1, total: 1, goal: false, xp: 1, seconds: 1 });
+    for (const m of content.missions) all = recordMatch(all, { missionId: m.id, correct: 1, total: 1, goal: false, xp: 1, seconds: 1 }, 0, true);
     expect(nextMission(content.missions, all)).toBeNull();
   });
   it('rejects foreign data and repairs damaged saves', () => {

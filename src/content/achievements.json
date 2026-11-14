@@ -1,0 +1,10 @@
+[
+  {"id":"first-goal","title":"First Goal","description":"Забий перший гол","metric":"goals","target":1},
+  {"id":"first-20-words","title":"First 20 Words","description":"Вивчи 20 слів","metric":"learned","target":20},
+  {"id":"perfect-match","title":"Perfect Match","description":"Зіграй матч без жодної помилки","metric":"perfect","target":1},
+  {"id":"listening-master","title":"Listening Master","description":"Дай 50 правильних відповідей на слух","metric":"listen","target":50},
+  {"id":"football-genius","title":"Football Genius","description":"Вивчи 100 слів","metric":"learned","target":100},
+  {"id":"seven-days","title":"7 Days Champion","description":"Грай у 7 різних днів","metric":"days","target":7},
+  {"id":"squad-eleven","title":"Squad Eleven","description":"Збери 11 гравців у клуб","metric":"cards","target":11},
+  {"id":"season-one","title":"Season One Winner","description":"Зіграй усі матчі першого сезону","metric":"season1","target":13}
+]
