@@ -1,6 +1,6 @@
 /* Football English service worker: stale-while-revalidate for the app shell.
    The app is a single index.html, so the cache list is short. */
-const CACHE = 'football-english-v4';
+const CACHE = 'football-english-v5';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (event) => {

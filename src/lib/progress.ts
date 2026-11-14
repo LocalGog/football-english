@@ -1,4 +1,4 @@
-import type { Accent, Content, MatchResult, Mission, PickMode, Progress, WordStat } from './types';
+import type { Accent, Content, DayStat, MatchResult, Mission, ParentSettings, PickMode, Progress, WordStat } from './types';
 import { applyAnswer, LEARNED_MASTERY } from './srs';
 
 export const XP_PER_LEVEL = 150;
@@ -38,7 +38,37 @@ export function newProgress(): Progress {
     club: { cards: [], tokens: 0, ball: 'classic', stadium: 'street' },
     achievements: {},
     adaptive: { tier: START_TIER },
+    history: {},
+    parent: newParent(),
   };
+}
+
+export const DEFAULT_DAILY_MINUTES = 10;
+export const DAILY_MINUTE_CHOICES = [5, 10, 15, 20] as const;
+const MAX_HISTORY_DAYS = 400;
+
+export const newParent = (): ParentSettings => ({ pinHash: null, pinSalt: null, dailyMinutes: DEFAULT_DAILY_MINUTES, pinResetAt: null });
+
+export const emptyDay = (): DayStat => ({ seconds: 0, matches: 0, answers: 0, correct: 0, listenAnswers: 0, listenCorrect: 0, learned: 0 });
+
+/** Adds to one day's activity, dropping the oldest days beyond the cap. */
+function bumpDay(history: Record<string, DayStat>, day: string, add: Partial<DayStat>): Record<string, DayStat> {
+  const cur = history[day] ?? emptyDay();
+  const next: DayStat = { ...cur };
+  for (const [k, v] of Object.entries(add) as [keyof DayStat, number][]) next[k] = cur[k] + v;
+  const merged = { ...history, [day]: next };
+  const days = Object.keys(merged);
+  if (days.length <= MAX_HISTORY_DAYS) return merged;
+  const keep = new Set(days.sort().slice(-MAX_HISTORY_DAYS));
+  return Object.fromEntries(Object.entries(merged).filter(([d]) => keep.has(d)));
+}
+
+/**
+ * Starts the player over: progress, club and history go, while the sound settings and the
+ * parent's PIN and daily goal stay.
+ */
+export function resetProgress(p: Progress): Progress {
+  return { ...newProgress(), settings: p.settings, parent: p.parent };
 }
 
 export function levelInfo(xp: number): { level: number; into: number; need: number; status: string } {
@@ -92,6 +122,8 @@ export function normalizeProgress(raw: unknown): Progress | null {
           if (isObj(t)) stat.modes[mode] = { c: Math.max(0, num(t.c, 0)), w: Math.max(0, num(t.w, 0)) };
         }
       }
+      const learnedAt = numOrNull(w.learnedAt);
+      if (learnedAt !== null) stat.learnedAt = learnedAt;
       if (isObj(w.confused)) {
         stat.confused = {};
         for (const [other, n] of Object.entries(w.confused).slice(0, 8)) {
@@ -126,6 +158,26 @@ export function normalizeProgress(raw: unknown): Progress | null {
   base.adaptive = {
     tier: isObj(raw.adaptive) ? Math.min(MAX_TIER, Math.max(0, Math.floor(num(raw.adaptive.tier, LEGACY_TIER)))) : LEGACY_TIER,
   };
+  if (isObj(raw.history)) {
+    for (const [day, d] of Object.entries(raw.history)) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !isObj(d)) continue;
+      const stat = emptyDay();
+      for (const k of Object.keys(stat) as (keyof DayStat)[]) stat[k] = Math.max(0, num(d[k], 0));
+      base.history[day] = stat;
+    }
+  }
+  if (isObj(raw.parent)) {
+    const hash = raw.parent.pinHash;
+    const salt = raw.parent.pinSalt;
+    const pinOk = typeof hash === 'string' && typeof salt === 'string' && /^[0-9a-f]{8,128}$/.test(hash) && salt.length <= 64;
+    const minutes = num(raw.parent.dailyMinutes, DEFAULT_DAILY_MINUTES);
+    base.parent = {
+      pinHash: pinOk ? hash : null,
+      pinSalt: pinOk ? salt : null,
+      dailyMinutes: (DAILY_MINUTE_CHOICES as readonly number[]).includes(minutes) ? minutes : DEFAULT_DAILY_MINUTES,
+      pinResetAt: numOrNull(raw.parent.pinResetAt),
+    };
+  }
   if (isObj(raw.achievements)) {
     for (const [id, at] of Object.entries(raw.achievements)) {
       if (typeof at === 'number' && Number.isFinite(at)) base.achievements[id] = at;
@@ -136,10 +188,20 @@ export function normalizeProgress(raw: unknown): Progress | null {
 
 export function recordAnswer(p: Progress, wordId: string, correct: boolean, now: number, mode?: PickMode, chosen?: string): Progress {
   const heard = correct && mode === 'listen';
+  const before = p.words[wordId];
+  const after = applyAnswer(before, correct, now, mode, chosen);
+  const newlyLearned = after.learnedAt !== undefined && before?.learnedAt === undefined;
   return {
     ...p,
-    words: { ...p.words, [wordId]: applyAnswer(p.words[wordId], correct, now, mode, chosen) },
+    words: { ...p.words, [wordId]: after },
     stats: heard ? { ...p.stats, listenCorrect: p.stats.listenCorrect + 1 } : p.stats,
+    history: bumpDay(p.history, localDay(now), {
+      answers: 1,
+      correct: correct ? 1 : 0,
+      listenAnswers: mode === 'listen' ? 1 : 0,
+      listenCorrect: heard ? 1 : 0,
+      learned: newlyLearned ? 1 : 0,
+    }),
   };
 }
 
@@ -176,12 +238,18 @@ export function recordMatch(p: Progress, r: MatchResult, now: number, transfersL
     },
     club: r.goal && transfersLeft ? { ...p.club, tokens: Math.min(MAX_TOKENS, p.club.tokens + 1) } : p.club,
     adaptive: { tier: nextTier(p.adaptive.tier, r.correct, r.total) },
+    history: bumpDay(p.history, day, { seconds: r.seconds, matches: 1 }),
   };
 }
 
 /** A finished pronunciation drill: the words count towards review, the drill earns a little XP. */
-export function recordSpeakDrill(p: Progress, words: number): Progress {
-  return { ...p, xp: p.xp + XP_SPEAK_DRILL, stats: { ...p.stats, spoken: p.stats.spoken + words } };
+export function recordSpeakDrill(p: Progress, words: number, seconds: number, now: number): Progress {
+  return {
+    ...p,
+    xp: p.xp + XP_SPEAK_DRILL,
+    stats: { ...p.stats, spoken: p.stats.spoken + words, secondsPlayed: p.stats.secondsPlayed + seconds },
+    history: bumpDay(p.history, localDay(now), { seconds }),
+  };
 }
 
 /** First mission not yet finished, or null when the whole season is done. */

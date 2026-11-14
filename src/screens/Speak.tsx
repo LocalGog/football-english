@@ -13,7 +13,7 @@ interface Props {
   wordIds: string[];
   content: Content;
   settings: Settings;
-  onDone: (practised: number) => void;
+  onDone: (practised: number, seconds: number) => void;
   onClose: () => void;
 }
 
@@ -30,6 +30,7 @@ export function SpeakScreen({ wordIds, content, settings, onDone, onClose }: Pro
   const [finished, setFinished] = useState(false);
   const recorder = useRef(new VoiceRecorder());
   const timer = useRef<number | undefined>(undefined);
+  const startedAt = useRef(Date.now());
   const word = content.wordById.get(wordIds[index]);
   const say = (text: string, slow = false) => speak(text, { accent: settings.accent, rate: slow ? SLOW_RATE : settings.rate });
 
@@ -85,7 +86,7 @@ export function SpeakScreen({ wordIds, content, settings, onDone, onClose }: Pro
     dropTake();
     if (index + 1 < wordIds.length) return setIndex(index + 1);
     setFinished(true);
-    onDone(wordIds.length);
+    onDone(wordIds.length, Math.round((Date.now() - startedAt.current) / 1000));
   };
 
   if (!word) throw new Error(`Слово «${wordIds[index]}» відсутнє у словнику`);

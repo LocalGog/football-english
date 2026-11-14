@@ -4,6 +4,7 @@ import { Avatar } from '../components/Avatar';
 import { SettingsSheet } from '../components/SettingsSheet';
 import { clubName, currentSeason, currentStadium, leagueTable, stadiumUnlocked } from '../lib/club';
 import { goalsTotal, levelInfo, playTarget } from '../lib/progress';
+import { todayMinutes } from '../lib/stats';
 import { learnedCount } from '../lib/srs';
 import type { Content, Mission, Progress, Settings } from '../lib/types';
 
@@ -12,11 +13,11 @@ interface Props {
   progress: Progress;
   onPlay: (mission: Mission | null) => void;
   onSettings: (settings: Settings) => void;
-  onImport: (progress: Progress) => void;
+  now: number;
 }
 
 /** The player's base: who you are, how far you have come, and one big button. */
-export function Home({ content, progress, onPlay, onSettings, onImport }: Props) {
+export function Home({ content, progress, onPlay, onSettings, now }: Props) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const player = progress.player;
   const lvl = levelInfo(progress.xp);
@@ -28,6 +29,8 @@ export function Home({ content, progress, onPlay, onSettings, onImport }: Props)
   const place = table.findIndex((r) => r.mine) + 1;
   const nextKit = content.kits.find((k) => k.level > lvl.level);
   const nextStadium = content.stadiums.find((s) => !stadiumUnlocked(s, progress));
+  const minutes = todayMinutes(progress, now);
+  const goal = progress.parent.dailyMinutes;
 
   const tiles = [
     { label: `Слів із ${content.words.length}`, value: String(learned) },
@@ -50,7 +53,7 @@ export function Home({ content, progress, onPlay, onSettings, onImport }: Props)
           <button
             className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-line text-mute"
             onClick={() => setSettingsOpen(true)}
-            aria-label="Налаштування"
+            aria-label="Налаштування звуку"
           >
             <SettingsIcon size={22} />
           </button>
@@ -66,6 +69,10 @@ export function Home({ content, progress, onPlay, onSettings, onImport }: Props)
           <div className="mt-2 h-3 overflow-hidden rounded-full bg-night">
             <div className="h-full rounded-full bg-gold transition-[width] duration-500" style={{ width: `${(lvl.into / lvl.need) * 100}%` }} />
           </div>
+          <p className="mt-3 text-sm text-mute" data-today>
+            Сьогодні: <b className="tabular-nums text-chalk">{minutes}</b> з {goal} хв
+            {minutes >= goal && ' · норму виконано'}
+          </p>
         </section>
 
         <section className="grid grid-cols-3 gap-3">
@@ -115,7 +122,7 @@ export function Home({ content, progress, onPlay, onSettings, onImport }: Props)
       </footer>
 
       {settingsOpen && (
-        <SettingsSheet progress={progress} onChange={onSettings} onImport={onImport} onClose={() => setSettingsOpen(false)} />
+        <SettingsSheet progress={progress} onChange={onSettings} onClose={() => setSettingsOpen(false)} />
       )}
     </>
   );

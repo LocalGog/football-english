@@ -24,6 +24,7 @@ export function applyAnswer(
     next.correct = s.correct + 1;
     next.mastery = Math.min(s.mastery + 1, MAX_MASTERY);
     next.nextReview = now + INTERVALS_MS[next.mastery - 1];
+    if (next.mastery >= LEARNED_MASTERY && next.learnedAt === undefined) next.learnedAt = now;
     return next;
   }
   next.wrong = s.wrong + 1;

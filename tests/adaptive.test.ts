@@ -159,8 +159,10 @@ describe('drills', () => {
     expect(words[0]).toBe('kick');
   });
   it('a finished pronunciation drill adds XP and counts the words', () => {
-    const p = recordSpeakDrill(newProgress(), 5);
+    const p = recordSpeakDrill(newProgress(), 5, 90, new Date(2026, 10, 14, 12).getTime());
     expect(p.xp).toBe(XP_SPEAK_DRILL);
     expect(p.stats.spoken).toBe(5);
+    expect(p.stats.secondsPlayed).toBe(90);
+    expect(p.history['2026-11-14'].seconds).toBe(90);
   });
 });

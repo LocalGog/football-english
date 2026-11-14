@@ -13,12 +13,14 @@ interface Props {
   xpBefore: number;
   unlocked: Achievement[];
   tokenEarned: boolean;
+  /** True when this match took the day's practice past the parent's goal. */
+  goalReached: boolean;
   onClub: () => void;
   onNext: () => void;
   onHome: () => void;
 }
 
-export function Result({ content, progress, plan, result, xpBefore, unlocked, tokenEarned, onClub, onNext, onHome }: Props) {
+export function Result({ content, progress, plan, result, xpBefore, unlocked, tokenEarned, goalReached, onClub, onNext, onHome }: Props) {
   const before = levelInfo(xpBefore);
   const after = levelInfo(progress.xp);
   const missed = new Set(result.missed);
@@ -51,6 +53,12 @@ export function Result({ content, progress, plan, result, xpBefore, unlocked, to
             </p>
           )}
         </section>
+
+        {goalReached && (
+          <p className="rounded-2xl border border-pitch bg-pitch/10 p-3 text-sm" data-goal-reached>
+            Тренування на сьогодні виконано. Добре попрацював! Можеш відпочити й повернутися завтра.
+          </p>
+        )}
 
         {(unlocked.length > 0 || tokenEarned) && (
           <section className="flex flex-col gap-2">

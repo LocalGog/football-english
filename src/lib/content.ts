@@ -6,6 +6,7 @@ import playersJson from '../content/players.json';
 import clubJson from '../content/club.json';
 import achievementsJson from '../content/achievements.json';
 import dialoguesJson from '../content/dialogues.json';
+import categoriesJson from '../content/categories.json';
 import type { Achievement, BallSkin, ClubPlayer, Content, Dialogue, Kit, Level, Mission, Rival, Sentence, Stadium, Word } from './types';
 
 export interface ClubCatalog {
@@ -16,6 +17,7 @@ export interface ClubCatalog {
   rivals: Rival[];
   achievements: Achievement[];
   dialogues: Dialogue[];
+  categories: Record<string, string>;
 }
 
 export function makeContent(words: Word[], sentences: Sentence[], missions: Mission[], levels: Level[], club: ClubCatalog): Content {
@@ -48,6 +50,7 @@ export function validateContent(c: Content): string[] {
   dup(c.words.map((w) => w.ukrainian.toLowerCase()), 'word ukrainian');
   dup(c.sentences.map((s) => s.english), 'sentence english');
   for (const w of c.words) {
+    if (!c.categories[w.category]) problems.push(`word ${w.id}: category ${w.category} has no topic name`);
     if (!w.english.trim() || !w.ukrainian.trim() || !w.image.trim()) problems.push(`word ${w.id}: empty field`);
   }
   for (const s of c.sentences) {
@@ -99,5 +102,6 @@ export const content: Content = makeContent(
     rivals: clubJson.rivals as Rival[],
     achievements: achievementsJson as Achievement[],
     dialogues: dialoguesJson as Dialogue[],
+    categories: categoriesJson as Record<string, string>,
   },
 );

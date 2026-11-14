@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { BottomNav, type Tab } from './components/BottomNav';
 import {
   ballUnlocked, currentBall, currentStadium, kitUnlocked, nextScoutPlayer, signPlayer, stadiumUnlocked, transfersLeft, unlockAchievements,
 } from './lib/club';
 import { content } from './lib/content';
 import { buildMatch, buildReview, buildWeakDrill, pickSpeakWords, type MatchPlan } from './lib/engine';
-import { newProgress, playTarget, recordAnswer, recordMatch, recordSpeakDrill } from './lib/progress';
+import { newProgress, playTarget, recordAnswer, recordMatch, recordSpeakDrill, resetProgress } from './lib/progress';
+import { todayMinutes } from './lib/stats';
 import { loadProgress, requestPersistence, saveProgress } from './lib/storage';
 import type { Achievement, ClubPlayer, MatchResult, Mission, Player, Progress } from './lib/types';
 import { AwardsScreen } from './screens/Awards';
@@ -13,7 +14,9 @@ import { ClubScreen } from './screens/Club';
 import { Home } from './screens/Home';
 import { MissionScreen } from './screens/Mission';
 import { Onboarding } from './screens/Onboarding';
+import { ParentScreen } from './screens/Parent';
 import { PlayScreen } from './screens/Play';
+import { ProgressTab } from './screens/ProgressTab';
 import { Result } from './screens/Result';
 import { ScoutScreen } from './screens/Scout';
 import { SpeakScreen } from './screens/Speak';
@@ -21,7 +24,15 @@ import { SpeakScreen } from './screens/Speak';
 type Screen =
   | { name: 'tabs' }
   | { name: 'match'; plan: MatchPlan; run: number }
-  | { name: 'result'; plan: MatchPlan; result: MatchResult; xpBefore: number; unlocked: Achievement[]; tokenEarned: boolean }
+  | {
+      name: 'result';
+      plan: MatchPlan;
+      result: MatchResult;
+      xpBefore: number;
+      unlocked: Achievement[];
+      tokenEarned: boolean;
+      goalReached: boolean;
+    }
   | { name: 'scout'; player: ClubPlayer; run: number }
   | { name: 'speak'; wordIds: string[]; run: number };
 
@@ -33,7 +44,10 @@ export default function App() {
   const [tab, setTab] = useState<Tab>('home');
   const [saveFailed, setSaveFailed] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  // The parent zone locks again whenever the app is reloaded or the parent leaves it.
+  const [parentUnlocked, setParentUnlocked] = useState(false);
   const runs = useRef(0);
+  const unlockParentCb = useCallback(() => setParentUnlocked(true), []);
 
   useEffect(() => {
     let alive = true;
@@ -88,11 +102,14 @@ export default function App() {
     if (wordIds.length) setScreen({ name: 'speak', wordIds, run: nextRun() });
   };
 
-  const finishSpeak = (practised: number) => {
-    const { progress: next, unlocked } = unlockAchievements(content, recordSpeakDrill(progress, practised), Date.now());
+  const finishSpeak = (practised: number, seconds: number) => {
+    const now = Date.now();
+    const { progress: next, unlocked } = unlockAchievements(content, recordSpeakDrill(progress, practised, seconds, now), now);
     setProgress(next);
     if (unlocked.length) setToast(`Нове досягнення: ${unlocked.map((a) => a.title).join(', ')}`);
   };
+
+  const unlockParent = unlockParentCb;
 
   const backTo = (target: Tab) => {
     setTab(target);
@@ -110,8 +127,18 @@ export default function App() {
     const now = Date.now();
     const played = recordMatch(progress, result, now, transfersLeft(content, progress));
     const { progress: next, unlocked } = unlockAchievements(content, played, now);
+    const goal = progress.parent.dailyMinutes;
+    const goalReached = todayMinutes(progress, now) < goal && todayMinutes(next, now) >= goal;
     setProgress(next);
-    setScreen({ name: 'result', plan, result, xpBefore: progress.xp, unlocked, tokenEarned: next.club.tokens > progress.club.tokens });
+    setScreen({
+      name: 'result',
+      plan,
+      result,
+      xpBefore: progress.xp,
+      unlocked,
+      tokenEarned: next.club.tokens > progress.club.tokens,
+      goalReached,
+    });
   };
 
   const sign = (playerId: string) => {
@@ -172,6 +199,7 @@ export default function App() {
         xpBefore={screen.xpBefore}
         unlocked={screen.unlocked}
         tokenEarned={screen.tokenEarned}
+        goalReached={screen.goalReached}
         onClub={openClub}
         onNext={() => {
           const target = playTarget(content, progress);
@@ -215,7 +243,7 @@ export default function App() {
             progress={progress}
             onPlay={startMatch}
             onSettings={(settings) => update((p) => ({ ...p, settings }))}
-            onImport={setProgress}
+            now={Date.now()}
           />
         )}
         {tab === 'play' && <PlayScreen content={content} progress={progress} onPlay={startMatch} onWeak={startWeakDrill} onSpeak={startSpeak} />}
@@ -223,7 +251,38 @@ export default function App() {
           <ClubScreen content={content} progress={progress} onScout={startScout} onKit={chooseKit} onBall={chooseBall} onStadium={chooseStadium} />
         )}
         {tab === 'awards' && <AwardsScreen content={content} progress={progress} />}
-        <BottomNav tab={tab} onTab={setTab} clubBadge={nextScoutPlayer(content, progress) ? progress.club.tokens : 0} />
+        {tab === 'progress' && <ProgressTab content={content} progress={progress} now={Date.now()} />}
+        {tab === 'parent' && (
+          <ParentScreen
+            content={content}
+            progress={progress}
+            now={Date.now()}
+            unlocked={parentUnlocked}
+            onUnlock={unlockParent}
+            onLock={() => setParentUnlocked(false)}
+            onSetPin={(pinHash, pinSalt) => {
+              update((p) => ({ ...p, parent: { ...p.parent, pinHash, pinSalt } }));
+              setParentUnlocked(true);
+            }}
+            onResetPin={() => update((p) => ({ ...p, parent: { ...p.parent, pinHash: null, pinSalt: null, pinResetAt: Date.now() } }))}
+            onDailyMinutes={(dailyMinutes) => update((p) => ({ ...p, parent: { ...p.parent, dailyMinutes } }))}
+            onImport={setProgress}
+            onReset={() => {
+              const fresh = resetProgress(progress);
+              // The autosave skips states without a player, so the reset is written here.
+              void saveProgress(fresh).then((ok) => setSaveFailed(!ok));
+              setProgress(fresh);
+              setParentUnlocked(false);
+              setTab('home');
+            }}
+          />
+        )}
+        <BottomNav
+          tab={tab}
+          onTab={(t) => {
+            if (t !== 'parent') setParentUnlocked(false);
+            setTab(t);
+          }} clubBadge={nextScoutPlayer(content, progress) ? progress.club.tokens : 0} />
       </div>
     );
   }

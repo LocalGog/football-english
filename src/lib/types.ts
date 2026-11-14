@@ -116,6 +116,8 @@ export interface Content {
   rivals: Rival[];
   achievements: Achievement[];
   dialogues: Dialogue[];
+  /** Category id -> Ukrainian topic name. */
+  categories: Record<string, string>;
   words: Word[];
   sentences: Sentence[];
   missions: Mission[];
@@ -141,6 +143,8 @@ export interface WordStat {
   modes?: Partial<Record<PickMode, ModeTally>>;
   /** Wrong options picked instead of this word, with counts. */
   confused?: Record<string, number>;
+  /** When the word first counted as learned; never moved back, so a word is counted once. */
+  learnedAt?: number;
 }
 
 export interface MissionStat {
@@ -181,6 +185,28 @@ export interface Stats {
   days: string[];
 }
 
+/** Activity of one local calendar day. */
+export interface DayStat {
+  seconds: number;
+  matches: number;
+  answers: number;
+  correct: number;
+  listenAnswers: number;
+  listenCorrect: number;
+  /** Words that became learned on this day. */
+  learned: number;
+}
+
+export interface ParentSettings {
+  /** Salted hash of the PIN; null until the parent sets one. */
+  pinHash: string | null;
+  pinSalt: string | null;
+  /** Recommended practice per day, in minutes. */
+  dailyMinutes: number;
+  /** Time of the last PIN reset, shown to the parent. */
+  pinResetAt: number | null;
+}
+
 export interface Progress {
   version: 1;
   player: Player | null;
@@ -192,6 +218,9 @@ export interface Progress {
   club: ClubState;
   /** Difficulty tier 0..2, moved one step at a time by match results. */
   adaptive: { tier: number };
+  /** Local date (YYYY-MM-DD) -> activity. */
+  history: Record<string, DayStat>;
+  parent: ParentSettings;
   /** Achievement id -> time unlocked. */
   achievements: Record<string, number>;
 }
