@@ -1,4 +1,4 @@
-import type { Content, Mission, PickMode, Progress } from './types';
+import type { Content, Mission, PickMode, Progress, Verb, VerbForm } from './types';
 import { confusionsOf, dueWordIds, hardWordIds, weakestMode } from './srs';
 
 export type Rng = () => number;
@@ -46,7 +46,35 @@ export interface DialogueStep {
   order: number[];
   retry: boolean;
 }
-export type Step = IntroStep | PickStep | BuildStep | HearStep | DialogueStep;
+/** Grammar rule card, shown before the exercises of a topic. Not scored. */
+export interface RuleStep {
+  kind: 'rule';
+  key: string;
+  topicId: string;
+}
+/** Choose the right form for the gap in a sentence. */
+export interface GapStep {
+  kind: 'gap';
+  key: string;
+  itemId: string;
+  topicId: string;
+  options: string[];
+  retry: boolean;
+}
+/** Irregular verb: give the past form or the third form. */
+export interface VerbStep {
+  kind: 'verb';
+  key: string;
+  verb: string;
+  form: VerbForm;
+  topicId: string;
+  options: string[];
+  retry: boolean;
+}
+export type Step = IntroStep | PickStep | BuildStep | HearStep | DialogueStep | RuleStep | GapStep | VerbStep;
+
+/** Steps that are shown but not scored. */
+export const isUnscored = (s: Step): boolean => s.kind === 'intro' || s.kind === 'rule';
 
 export interface MatchPlan {
   missionId: string;
@@ -62,6 +90,9 @@ export interface MatchPlan {
 
 export interface Tier {
   options: number;
+  /** Gap exercises and verb forms per grammar match. */
+  gaps: number;
+  verbForms: number;
   listen: number;
   name: number;
   /** Sentence-listening questions, taken from matches already played. */
@@ -74,9 +105,9 @@ export interface Tier {
 
 /** Difficulty tiers. Each step adds a little; nothing is taken away from the content itself. */
 export const TIERS: readonly Tier[] = [
-  { options: 3, listen: 3, name: 2, hear: 0, buildDistractor: false, dictation: false },
-  { options: 4, listen: 4, name: 3, hear: 1, buildDistractor: false, dictation: false },
-  { options: 4, listen: 5, name: 4, hear: 2, buildDistractor: true, dictation: true },
+  { options: 3, gaps: 4, verbForms: 5, listen: 3, name: 2, hear: 0, buildDistractor: false, dictation: false },
+  { options: 4, gaps: 5, verbForms: 6, listen: 4, name: 3, hear: 1, buildDistractor: false, dictation: false },
+  { options: 4, gaps: 6, verbForms: 8, listen: 5, name: 4, hear: 2, buildDistractor: true, dictation: true },
 ];
 
 export const tierOf = (progress: Progress): Tier => TIERS[Math.min(TIERS.length - 1, Math.max(0, progress.adaptive.tier))];
@@ -189,8 +220,100 @@ function withShots(missionId: string, title: string, rewardXp: number, body: Ste
     steps,
     // Marked as a retry so a goal on the second attempt is not counted as a first-try answer.
     spareShot: { ...makePick('shot-2', second, 'listen', pool, ctx, true), retry: true },
-    questionCount: steps.filter((s) => s.kind !== 'intro').length,
+    questionCount: steps.filter((s) => !isUnscored(s)).length,
   };
+}
+
+/** A wrong past form a learner would plausibly make: go → goed, come → comed, fly → flied. */
+export function regularise(base: string): string {
+  if (base.endsWith('e')) return `${base}d`;
+  if (/[^aeiou]y$/.test(base)) return `${base.slice(0, -1)}ied`;
+  return `${base}ed`;
+}
+
+/** Correct form plus wrong ones that are all real-looking and all different from it. */
+export function verbOptions(verb: Verb, form: VerbForm, count: number, rng: Rng): string[] {
+  const correct = form === 'past' ? verb.past : verb.participle;
+  const other = form === 'past' ? verb.participle : verb.past;
+  const candidates = uniq([regularise(verb.base), other, verb.base, `${verb.base}s`, `${verb.base}ing`]).filter((x) => x !== correct);
+  return shuffle([correct, ...candidates.slice(0, count - 1)], rng);
+}
+
+function makeGap(itemId: string, ctx: Ctx, keyPrefix = 'gap'): GapStep {
+  const item = ctx.content.grammarItemById.get(itemId);
+  if (!item) throw new Error(`Unknown grammar item: ${itemId}`);
+  const wrong = shuffle(item.wrong, ctx.rng).slice(0, ctx.tier.options - 1);
+  return { kind: 'gap', key: `${keyPrefix}-${itemId}`, itemId, topicId: item.topic, options: shuffle([item.answer, ...wrong], ctx.rng), retry: false };
+}
+
+function makeVerb(base: string, form: VerbForm, topicId: string, ctx: Ctx, keyPrefix = 'verb'): VerbStep {
+  const verb = ctx.content.verbByBase.get(base);
+  if (!verb) throw new Error(`Unknown verb: ${base}`);
+  return { kind: 'verb', key: `${keyPrefix}-${base}-${form}`, verb: base, form, topicId, options: verbOptions(verb, form, ctx.tier.options, ctx.rng), retry: false };
+}
+
+const GRAMMAR_LISTEN = 2;
+
+/**
+ * A grammar match: the rule card (on the first visit), the match's new words, a short listening
+ * round, gap exercises, verb forms, sentence building, the dialogue and the shot.
+ */
+function buildGrammarMatch(mission: Mission, ctx: Ctx, now: number): MatchPlan {
+  const { content, progress, tier, rng } = ctx;
+  const grammar = mission.grammar!;
+  const pool = optionPool(mission.words, ctx);
+  const body: Step[] = [];
+
+  if (!(progress.missions[mission.id]?.completed > 0)) body.push({ kind: 'rule', key: `rule-${grammar.topic}`, topicId: grammar.topic });
+
+  for (const id of mission.words) {
+    if ((progress.words[id]?.mastery ?? 0) === 0) body.push({ kind: 'intro', key: `intro-${id}`, wordId: id });
+  }
+  for (const id of shuffle(mission.words, rng)) body.push(makePick(`read-${id}`, id, 'read', pool, ctx));
+
+  const due = dueWordIds(progress, now).filter((id) => !mission.words.includes(id) && content.wordById.has(id)).slice(0, 1);
+  for (const id of shuffle([...due, ...shuffle(mission.words, rng)].slice(0, GRAMMAR_LISTEN), rng)) {
+    body.push(makePick(`listen-${id}`, id, 'listen', uniq([...pool, ...due]), ctx));
+  }
+
+  for (const id of shuffle(grammar.items, rng).slice(0, tier.gaps)) body.push(makeGap(id, ctx));
+  if (grammar.verbs?.length && grammar.verbForm) {
+    for (const v of shuffle(grammar.verbs, rng).slice(0, tier.verbForms)) body.push(makeVerb(v, grammar.verbForm, grammar.topic, ctx));
+  }
+
+  body.push(...makeHearSteps(ctx, mission.sentences));
+  for (const id of mission.sentences) body.push(makeBuild(`build-${id}`, id, ctx, 'translate'));
+
+  const dialogue = content.dialogues.find((d) => d.mission === mission.id);
+  if (dialogue) body.push(makeDialogue(dialogue.id, ctx));
+
+  return withShots(mission.id, mission.title, mission.rewards.xp, body, mission.words, pool, ctx);
+}
+
+const REVIEW_GRAMMAR = 2;
+
+/** Grammar for a review match: mistakes first, then exercises from grammar matches already played. */
+function reviewGrammarSteps(ctx: Ctx): Step[] {
+  const { content, progress, rng } = ctx;
+  const steps: Step[] = [];
+  for (const key of [...progress.grammarMissed].reverse()) {
+    if (steps.length >= REVIEW_GRAMMAR) break;
+    const [kind, id, form] = key.split(':');
+    if (kind === 'item' && content.grammarItemById.has(id)) steps.push(makeGap(id, ctx, 'review-gap'));
+    if (kind === 'verb' && content.verbByBase.has(id) && (form === 'past' || form === 'participle')) {
+      const topic = form === 'past' ? 'past-irregular' : 'present-perfect';
+      steps.push(makeVerb(id, form, topic, ctx, 'review-verb'));
+    }
+  }
+  const played = content.missions.filter((m) => m.grammar && progress.missions[m.id]?.completed > 0);
+  const extra = shuffle(played.flatMap((m) => m.grammar!.items), rng).filter((id) => !steps.some((s) => s.kind === 'gap' && s.itemId === id));
+  for (const id of extra.slice(0, REVIEW_GRAMMAR - steps.length)) steps.push(makeGap(id, ctx, 'review-gap'));
+  return steps;
+}
+
+/** Progress key under which a grammar answer is remembered. */
+export function grammarKey(step: GapStep | VerbStep): string {
+  return step.kind === 'gap' ? `item:${step.itemId}` : `verb:${step.verb}:${step.form}`;
 }
 
 /**
@@ -201,6 +324,7 @@ function withShots(missionId: string, title: string, rewardXp: number, body: Ste
 export function buildMatch(mission: Mission, content: Content, progress: Progress, now: number, rng: Rng = Math.random): MatchPlan {
   for (const id of mission.words) if (!content.wordById.has(id)) throw new Error(`Unknown word: ${id}`);
   const ctx: Ctx = { content, progress, tier: tierOf(progress), rng };
+  if (mission.grammar) return buildGrammarMatch(mission, ctx, now);
   const { tier } = ctx;
   const pool = optionPool(mission.words, ctx);
   const body: Step[] = [];
@@ -258,6 +382,7 @@ export function buildReview(content: Content, progress: Progress, now: number, r
   });
 
   body.push(...makeHearSteps(ctx, []));
+  body.push(...reviewGrammarSteps(ctx));
 
   const known = knownSentences(ctx, []);
   const sentences = shuffle(known.length >= 2 ? known : content.sentences.map((s) => s.id), rng).slice(0, 2);

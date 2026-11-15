@@ -7,7 +7,7 @@ import { dailyBars, minutesPick } from '../lib/charts';
 import { checkPin, hashPin, isValidPin, makeSalt, PIN_LENGTH } from '../lib/pin';
 import { DAILY_MINUTE_CHOICES, levelInfo } from '../lib/progress';
 import { learnedCount } from '../lib/srs';
-import { accuracyByMode, hardWords, isMastered, minutesOf, periodSummary, todayMinutes, topics, type Period } from '../lib/stats';
+import { accuracyByMode, grammarStats, hardWords, isMastered, minutesOf, periodSummary, todayMinutes, topics, type Period } from '../lib/stats';
 import type { Content, PickMode, Progress } from '../lib/types';
 
 interface Props {
@@ -189,6 +189,7 @@ function Dashboard({ content, progress, now, onLock, onDailyMinutes, onImport, o
   const inProgress = allTopics.filter((t) => t.seen > 0 && !isMastered(t));
   const hard = hardWords(content, progress);
   const modes = accuracyByMode(progress);
+  const grammar = grammarStats(content, progress).filter((g) => g.answers > 0);
   const en = (id: string) => content.wordById.get(id)?.english ?? id;
   const uk = (id: string) => content.wordById.get(id)?.ukrainian ?? '';
   const pill = (active: boolean) => `h-11 flex-1 rounded-xl border-2 text-sm font-semibold ${active ? 'border-gold bg-gold/15 text-chalk' : 'border-line text-mute'}`;
@@ -274,6 +275,29 @@ function Dashboard({ content, progress, now, onLock, onDailyMinutes, onImport, o
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="rounded-3xl border border-line bg-panel p-4" data-grammar-stats>
+        <h2 className="display text-xl">Граматика</h2>
+        {grammar.length === 0 ? (
+          <p className="mt-1 text-sm text-mute">Граматичні теми починаються з сезону 4.</p>
+        ) : (
+          <ul className="mt-2 flex flex-col gap-2">
+            {grammar.map((g) => (
+              <li key={g.id} data-grammar-topic={g.id}>
+                <div className="flex justify-between gap-2 text-sm">
+                  <span className="min-w-0 truncate">{g.title}</span>
+                  <span className="shrink-0 tabular-nums text-mute">
+                    <b className="text-chalk">{pct(g.accuracy)}</b> · {g.answers} відп.
+                  </span>
+                </div>
+                <div className="mt-1 h-2 overflow-hidden rounded-full bg-night">
+                  <div className="h-full rounded-full bg-pitch" style={{ width: `${(g.accuracy ?? 0) * 100}%` }} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="rounded-3xl border border-line bg-panel p-4">

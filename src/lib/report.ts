@@ -1,6 +1,6 @@
 import { levelInfo } from './progress';
 import { learnedCount } from './srs';
-import { hardWords, isMastered, lastDays, periodSummary, topics } from './stats';
+import { hardWords, isMastered, lastDays, periodSummary, topics, weakestGrammar } from './stats';
 import type { Content, Progress } from './types';
 
 const REPORT_DAYS = 7;
@@ -36,6 +36,8 @@ export function weeklyReport(content: Content, p: Progress, now: number): string
     `Складні слова: ${hard.length ? hard.map((h) => word(h.id)).join(', ') : 'немає'}`,
     `Засвоєні теми: ${mastered} з ${allTopics.length}`,
   ];
+  const grammar = weakestGrammar(content, p);
+  if (grammar) lines.push(`Граматика, найважче: ${grammar.title} (${pct(grammar.accuracy)})`);
   if (week.activeDays === 0) lines.push('Цього тижня занять не було.');
   return lines.join('\n');
 }

@@ -5,7 +5,7 @@ import {
 } from './lib/club';
 import { content } from './lib/content';
 import { buildMatch, buildReview, buildWeakDrill, pickSpeakWords, type MatchPlan } from './lib/engine';
-import { newProgress, playTarget, recordAnswer, recordMatch, recordSpeakDrill, resetProgress } from './lib/progress';
+import { newProgress, playTarget, recordAnswer, recordGrammar, recordMatch, recordSpeakDrill, resetProgress } from './lib/progress';
 import { todayMinutes } from './lib/stats';
 import { loadProgress, requestPersistence, saveProgress } from './lib/storage';
 import type { Achievement, ClubPlayer, MatchResult, Mission, Player, Progress } from './lib/types';
@@ -185,6 +185,7 @@ export default function App() {
         stadium={currentStadium(content, progress)}
         hints={progress.adaptive.tier === 0}
         onAnswer={(wordId, correct, mode, chosen) => update((p) => recordAnswer(p, wordId, correct, Date.now(), mode, chosen))}
+        onGrammar={(topicId, key, correct) => update((p) => recordGrammar(p, topicId, key, correct, Date.now()))}
         onFinish={(result) => finishMatch(screen.plan, result)}
         onExit={() => setScreen({ name: 'tabs' })}
       />

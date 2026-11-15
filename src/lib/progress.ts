@@ -40,6 +40,26 @@ export function newProgress(): Progress {
     adaptive: { tier: START_TIER },
     history: {},
     parent: newParent(),
+    grammar: {},
+    grammarMissed: [],
+  };
+}
+
+const MAX_GRAMMAR_MISSED = 40;
+
+/**
+ * A grammar answer: counted for its topic and for the day; a wrong one is remembered
+ * for review until it is answered right.
+ */
+export function recordGrammar(p: Progress, topic: string, key: string, correct: boolean, now: number): Progress {
+  const tally = p.grammar[topic] ?? { c: 0, w: 0 };
+  const missed = p.grammarMissed.filter((k) => k !== key);
+  if (!correct) missed.push(key);
+  return {
+    ...p,
+    grammar: { ...p.grammar, [topic]: correct ? { ...tally, c: tally.c + 1 } : { ...tally, w: tally.w + 1 } },
+    grammarMissed: missed.slice(-MAX_GRAMMAR_MISSED),
+    history: bumpDay(p.history, localDay(now), { answers: 1, correct: correct ? 1 : 0 }),
   };
 }
 
@@ -178,6 +198,12 @@ export function normalizeProgress(raw: unknown): Progress | null {
       pinResetAt: numOrNull(raw.parent.pinResetAt),
     };
   }
+  if (isObj(raw.grammar)) {
+    for (const [topic, t] of Object.entries(raw.grammar)) {
+      if (isObj(t)) base.grammar[topic] = { c: Math.max(0, num(t.c, 0)), w: Math.max(0, num(t.w, 0)) };
+    }
+  }
+  base.grammarMissed = [...new Set(strings(raw.grammarMissed))].slice(-MAX_GRAMMAR_MISSED);
   if (isObj(raw.achievements)) {
     for (const [id, at] of Object.entries(raw.achievements)) {
       if (typeof at === 'number' && Number.isFinite(at)) base.achievements[id] = at;

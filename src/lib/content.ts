@@ -7,7 +7,8 @@ import clubJson from '../content/club.json';
 import achievementsJson from '../content/achievements.json';
 import dialoguesJson from '../content/dialogues.json';
 import categoriesJson from '../content/categories.json';
-import type { Achievement, BallSkin, ClubPlayer, Content, Dialogue, Kit, Level, Mission, Rival, Sentence, Stadium, Word } from './types';
+import grammarJson from '../content/grammar.json';
+import type { Achievement, BallSkin, ClubPlayer, Content, Dialogue, GrammarItem, GrammarTopic, Kit, Verb, Level, Mission, Rival, Sentence, Stadium, Word } from './types';
 
 export interface ClubCatalog {
   players: ClubPlayer[];
@@ -18,6 +19,9 @@ export interface ClubCatalog {
   achievements: Achievement[];
   dialogues: Dialogue[];
   categories: Record<string, string>;
+  grammarTopics: GrammarTopic[];
+  grammarItems: GrammarItem[];
+  verbs: Verb[];
 }
 
 export function makeContent(words: Word[], sentences: Sentence[], missions: Mission[], levels: Level[], club: ClubCatalog): Content {
@@ -28,6 +32,8 @@ export function makeContent(words: Word[], sentences: Sentence[], missions: Miss
     sentences,
     missions,
     wordById: new Map(words.map((w) => [w.id, w])),
+    grammarItemById: new Map(club.grammarItems.map((i) => [i.id, i])),
+    verbByBase: new Map(club.verbs.map((v) => [v.base, v])),
     sentenceById: new Map(sentences.map((s) => [s.id, s])),
   };
 }
@@ -85,6 +91,27 @@ export function validateContent(c: Content): string[] {
   for (const b of c.balls) {
     if (b.achievement && !c.achievements.some((a) => a.id === b.achievement)) problems.push(`ball ${b.id}: unknown achievement ${b.achievement}`);
   }
+  dup(c.grammarTopics.map((t) => t.id), 'grammar topic');
+  dup(c.grammarItems.map((i) => i.id), 'grammar item');
+  dup(c.verbs.map((v) => v.base), 'verb');
+  const topicIds = new Set(c.grammarTopics.map((t) => t.id));
+  for (const t of c.grammarTopics) {
+    if (!t.rule.trim() || t.examples.length === 0) problems.push(`grammar topic ${t.id}: needs a rule and examples`);
+    for (const e of t.examples) if (!/\*[^*]+\*/.test(e.english)) problems.push(`grammar topic ${t.id}: example without *highlight*`);
+  }
+  for (const i of c.grammarItems) {
+    if (!topicIds.has(i.topic)) problems.push(`grammar item ${i.id}: unknown topic ${i.topic}`);
+    const options = [i.answer, ...i.wrong];
+    if (i.wrong.length < 3 || new Set(options).size !== options.length) problems.push(`grammar item ${i.id}: needs 3 distinct wrong options`);
+    if (!i.answer.trim() || !i.ukrainian.trim()) problems.push(`grammar item ${i.id}: empty answer or translation`);
+  }
+  for (const m of c.missions) {
+    if (!m.grammar) continue;
+    if (!topicIds.has(m.grammar.topic)) problems.push(`mission ${m.id}: unknown grammar topic ${m.grammar.topic}`);
+    for (const id of m.grammar.items) if (!c.grammarItemById.has(id)) problems.push(`mission ${m.id}: unknown grammar item ${id}`);
+    for (const v of m.grammar.verbs ?? []) if (!c.verbByBase.has(v)) problems.push(`mission ${m.id}: unknown verb ${v}`);
+    if (m.grammar.verbs?.length && !m.grammar.verbForm) problems.push(`mission ${m.id}: verbs without verbForm`);
+  }
   if (!c.kits.some((k) => k.level <= 1)) problems.push('no starter kit');
   if (!c.balls.some((b) => b.achievement === null)) problems.push('no starter ball');
   if (!c.stadiums.some((s) => s.words === 0)) problems.push('no starter stadium');
@@ -105,5 +132,8 @@ export const content: Content = makeContent(
     achievements: achievementsJson as Achievement[],
     dialogues: dialoguesJson as Dialogue[],
     categories: categoriesJson as Record<string, string>,
+    grammarTopics: grammarJson.topics as GrammarTopic[],
+    grammarItems: grammarJson.items as GrammarItem[],
+    verbs: grammarJson.verbs as Verb[],
   },
 );

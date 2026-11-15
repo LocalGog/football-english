@@ -17,6 +17,45 @@ export interface Sentence {
   ukrainian: string;
 }
 
+export type VerbForm = 'past' | 'participle';
+
+export interface MissionGrammar {
+  topic: string;
+  /** Fill-the-gap exercises of this match. */
+  items: string[];
+  /** Irregular verbs drilled in this match, and which form is asked. */
+  verbs?: string[];
+  verbForm?: VerbForm;
+}
+
+export interface GrammarTopic {
+  id: string;
+  title: string;
+  /** One or two sentences in Ukrainian. */
+  rule: string;
+  /** English with the key part in *asterisks*. */
+  examples: { english: string; ukrainian: string }[];
+}
+
+/** A sentence with one gap: before ___ after. */
+export interface GrammarItem {
+  id: string;
+  topic: string;
+  before: string;
+  answer: string;
+  after: string;
+  /** Clearly wrong forms, never another correct answer. */
+  wrong: string[];
+  ukrainian: string;
+}
+
+export interface Verb {
+  base: string;
+  past: string;
+  participle: string;
+  ukrainian: string;
+}
+
 export interface Mission {
   id: string;
   title: string;
@@ -27,6 +66,7 @@ export interface Mission {
   sentences: string[];
   rewards: { xp: number };
   estimated_duration: number;
+  grammar?: MissionGrammar;
 }
 
 export interface Level {
@@ -110,6 +150,8 @@ export interface Dialogue {
   /** Possible replies; `answer` is the index of the right one. */
   options: { english: string; ukrainian: string }[];
   answer: number;
+  /** Grammar dialogue: the Ukrainian notes explain the mistakes, so they are shown only after answering. */
+  grammar?: boolean;
 }
 
 export interface Achievement {
@@ -131,6 +173,11 @@ export interface Content {
   dialogues: Dialogue[];
   /** Category id -> Ukrainian topic name. */
   categories: Record<string, string>;
+  grammarTopics: GrammarTopic[];
+  grammarItems: GrammarItem[];
+  verbs: Verb[];
+  grammarItemById: Map<string, GrammarItem>;
+  verbByBase: Map<string, Verb>;
   words: Word[];
   sentences: Sentence[];
   missions: Mission[];
@@ -233,6 +280,10 @@ export interface Progress {
   adaptive: { tier: number };
   /** Local date (YYYY-MM-DD) -> activity. */
   history: Record<string, DayStat>;
+  /** Grammar topic id -> right and wrong answers. */
+  grammar: Record<string, ModeTally>;
+  /** Grammar exercises answered wrong and not yet put right ("item:<id>" or "verb:<base>:<form>"), newest last. */
+  grammarMissed: string[];
   parent: ParentSettings;
   /** Achievement id -> time unlocked. */
   achievements: Record<string, number>;

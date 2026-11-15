@@ -129,3 +129,30 @@ export function hardWords(content: Content, p: Progress): HardWord[] {
       };
     });
 }
+
+export interface GrammarStat {
+  id: string;
+  title: string;
+  answers: number;
+  accuracy: number | null;
+}
+
+/** Grammar topics in teaching order, with all-time accuracy. Topics never practised have 0 answers. */
+export function grammarStats(content: Content, p: Progress): GrammarStat[] {
+  const order: string[] = [];
+  for (const m of content.missions) if (m.grammar && !order.includes(m.grammar.topic)) order.push(m.grammar.topic);
+  return order.map((id) => {
+    const t = p.grammar[id] ?? { c: 0, w: 0 };
+    const answers = t.c + t.w;
+    return { id, title: content.grammarTopics.find((g) => g.id === id)?.title ?? id, answers, accuracy: answers ? t.c / answers : null };
+  });
+}
+
+/** Enough answers for an accuracy figure to mean something. */
+export const GRAMMAR_MIN_ANSWERS = 5;
+
+/** The practised grammar topic with the lowest accuracy, if any has enough answers. */
+export function weakestGrammar(content: Content, p: Progress): GrammarStat | null {
+  const rated = grammarStats(content, p).filter((g) => g.answers >= GRAMMAR_MIN_ANSWERS);
+  return rated.reduce<GrammarStat | null>((worst, g) => (worst === null || (g.accuracy ?? 1) < (worst.accuracy ?? 1) ? g : worst), null);
+}

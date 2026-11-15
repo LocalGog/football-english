@@ -1,0 +1,2097 @@
+{
+ "topics": [
+  {
+   "id": "present-simple",
+   "title": "Present Simple: I play",
+   "rule": "Про те, що буває завжди або регулярно. Дієслово без змін: I play, we train, they watch.",
+   "examples": [
+    {
+     "english": "I *play* football every day.",
+     "ukrainian": "Я граю у футбол щодня."
+    },
+    {
+     "english": "We always *train* on Monday.",
+     "ukrainian": "Ми завжди тренуємося в понеділок."
+    }
+   ]
+  },
+  {
+   "id": "present-simple-3rd",
+   "title": "Present Simple: he plays",
+   "rule": "Після he, she, it до дієслова додаємо -s: he plays. Після -ch, -sh, -o додаємо -es: she watches, he goes. Study → studies.",
+   "examples": [
+    {
+     "english": "He *plays* for a big club.",
+     "ukrainian": "Він грає за великий клуб."
+    },
+    {
+     "english": "She *watches* every match.",
+     "ukrainian": "Вона дивиться кожен матч."
+    }
+   ]
+  },
+  {
+   "id": "present-simple-questions",
+   "title": "Do і does",
+   "rule": "Питання: Do you…? Does he…? Заперечення: don't, doesn't. Після does і doesn't дієслово без -s.",
+   "examples": [
+    {
+     "english": "*Do* you play football?",
+     "ukrainian": "Ти граєш у футбол?"
+    },
+    {
+     "english": "He *doesn't like* rain.",
+     "ukrainian": "Він не любить дощ."
+    }
+   ]
+  },
+  {
+   "id": "present-continuous",
+   "title": "Present Continuous: зараз",
+   "rule": "Те, що відбувається саме зараз: am / is / are + дієслово з -ing.",
+   "examples": [
+    {
+     "english": "He *is running* with the ball.",
+     "ukrainian": "Він біжить з м'ячем."
+    },
+    {
+     "english": "The fans *are singing*.",
+     "ukrainian": "Вболівальники співають."
+    }
+   ]
+  },
+  {
+   "id": "present-continuous-questions",
+   "title": "Present Continuous: питання",
+   "rule": "Питання: Is he…? Are they…? Заперечення: I'm not, isn't, aren't.",
+   "examples": [
+    {
+     "english": "What *is* he *doing*?",
+     "ukrainian": "Що він робить?"
+    },
+    {
+     "english": "They *aren't playing* well.",
+     "ukrainian": "Вони грають не дуже добре."
+    }
+   ]
+  },
+  {
+   "id": "simple-vs-continuous",
+   "title": "Завжди чи зараз?",
+   "rule": "Регулярно (every day, usually, always) — Present Simple. Саме зараз (now, look!, listen!) — Present Continuous.",
+   "examples": [
+    {
+     "english": "He usually *plays* on the left.",
+     "ukrainian": "Зазвичай він грає зліва."
+    },
+    {
+     "english": "Today he *is playing* on the right.",
+     "ukrainian": "Сьогодні він грає справа."
+    }
+   ]
+  },
+  {
+   "id": "past-be",
+   "title": "Was і were",
+   "rule": "Минуле від am, is, are: I, he, she, it — was; we, you, they — were. Заперечення: wasn't, weren't.",
+   "examples": [
+    {
+     "english": "The match *was* great.",
+     "ukrainian": "Матч був чудовий."
+    },
+    {
+     "english": "We *were* at the stadium.",
+     "ukrainian": "Ми були на стадіоні."
+    }
+   ]
+  },
+  {
+   "id": "past-regular",
+   "title": "Past Simple: -ed",
+   "rule": "Про минуле додаємо до дієслова -ed: play → played. Stop → stopped, try → tried.",
+   "examples": [
+    {
+     "english": "We *played* well last Saturday.",
+     "ukrainian": "Минулої суботи ми добре зіграли."
+    },
+    {
+     "english": "He *passed* the ball to me.",
+     "ukrainian": "Він віддав мені пас."
+    }
+   ]
+  },
+  {
+   "id": "past-irregular",
+   "title": "Неправильні дієслова",
+   "rule": "Деякі дієслова в минулому мають власну форму. Її треба запам'ятати: go → went, win → won, see → saw.",
+   "examples": [
+    {
+     "english": "We *won* the match.",
+     "ukrainian": "Ми виграли матч."
+    },
+    {
+     "english": "He *came* to training late.",
+     "ukrainian": "Він прийшов на тренування пізно."
+    }
+   ]
+  },
+  {
+   "id": "past-questions",
+   "title": "Did і didn't",
+   "rule": "Питання й заперечення в минулому: Did you…? We didn't… Після did і didn't дієслово в першій формі: Did he score?",
+   "examples": [
+    {
+     "english": "*Did* you *win*?",
+     "ukrainian": "Ви виграли?"
+    },
+    {
+     "english": "We *didn't lose*.",
+     "ukrainian": "Ми не програли."
+    }
+   ]
+  },
+  {
+   "id": "past-mixed",
+   "title": "Past Simple: усе разом",
+   "rule": "Розповідаємо про минулий матч: was / were, -ed і неправильні дієслова.",
+   "examples": [
+    {
+     "english": "It *was* a hard match.",
+     "ukrainian": "Це був важкий матч."
+    },
+    {
+     "english": "The goalkeeper *made* a great save.",
+     "ukrainian": "Воротар зробив чудовий сейв."
+    }
+   ]
+  },
+  {
+   "id": "future-will",
+   "title": "Future: will",
+   "rule": "Прогноз, обіцянка, рішення: will + дієслово без змін. Заперечення: won't.",
+   "examples": [
+    {
+     "english": "We *will win* the next match.",
+     "ukrainian": "Ми виграємо наступний матч."
+    },
+    {
+     "english": "He *won't play* tomorrow.",
+     "ukrainian": "Він не гратиме завтра."
+    }
+   ]
+  },
+  {
+   "id": "going-to",
+   "title": "Going to",
+   "rule": "План або те, що от-от станеться: am / is / are going to + дієслово.",
+   "examples": [
+    {
+     "english": "We *are going to attack*.",
+     "ukrainian": "Ми збираємося атакувати."
+    },
+    {
+     "english": "Look! It *is going to rain*.",
+     "ukrainian": "Глянь! Зараз піде дощ."
+    }
+   ]
+  },
+  {
+   "id": "future-mixed",
+   "title": "Will чи going to?",
+   "rule": "Going to — план або те, що очевидно станеться. Will — думка, прогноз, обіцянка.",
+   "examples": [
+    {
+     "english": "I *am going to buy* new boots.",
+     "ukrainian": "Я збираюся купити нові бутси."
+    },
+    {
+     "english": "I think it *will be* a draw.",
+     "ukrainian": "Думаю, буде нічия."
+    }
+   ]
+  },
+  {
+   "id": "present-perfect",
+   "title": "Present Perfect",
+   "rule": "Результат на цей момент: have / has + третя форма дієслова: I have scored, she has won.",
+   "examples": [
+    {
+     "english": "I *have scored* ten goals.",
+     "ukrainian": "Я забив десять голів."
+    },
+    {
+     "english": "She *has won* the cup.",
+     "ukrainian": "Вона виграла кубок."
+    }
+   ]
+  },
+  {
+   "id": "pp-already-yet",
+   "title": "Already, just, yet",
+   "rule": "Already — уже, just — щойно: у ствердженнях. Yet — уже (у питаннях), ще (у запереченнях), стоїть у кінці.",
+   "examples": [
+    {
+     "english": "The match *has just started*.",
+     "ukrainian": "Матч щойно почався."
+    },
+    {
+     "english": "We *haven't lost yet*.",
+     "ukrainian": "Ми ще не програли."
+    }
+   ]
+  },
+  {
+   "id": "pp-ever-never",
+   "title": "Ever і never",
+   "rule": "Ever — коли-небудь (у питаннях), never — ніколи. Have you ever…? I have never…",
+   "examples": [
+    {
+     "english": "*Have* you *ever played* in a final?",
+     "ukrainian": "Ти коли-небудь грав у фіналі?"
+    },
+    {
+     "english": "I *have never been* to Spain.",
+     "ukrainian": "Я ніколи не був в Іспанії."
+    }
+   ]
+  },
+  {
+   "id": "tenses-mixed",
+   "title": "Усі часи разом",
+   "rule": "Present Simple, Present Continuous, Past Simple, Future і Present Perfect в одному матчі.",
+   "examples": [
+    {
+     "english": "Right now we *are playing* the final!",
+     "ukrainian": "Просто зараз ми граємо у фіналі!"
+    },
+    {
+     "english": "We *have won* the World Cup!",
+     "ukrainian": "Ми виграли чемпіонат світу!"
+    }
+   ]
+  }
+ ],
+ "items": [
+  {
+   "id": "g001",
+   "topic": "present-simple",
+   "before": "I",
+   "answer": "play",
+   "after": "football every day.",
+   "wrong": [
+    "plays",
+    "playing",
+    "am play"
+   ],
+   "ukrainian": "Я граю у футбол щодня."
+  },
+  {
+   "id": "g002",
+   "topic": "present-simple",
+   "before": "We",
+   "answer": "train",
+   "after": "on Monday.",
+   "wrong": [
+    "trains",
+    "training",
+    "are train"
+   ],
+   "ukrainian": "Ми тренуємося в понеділок."
+  },
+  {
+   "id": "g003",
+   "topic": "present-simple",
+   "before": "They",
+   "answer": "watch",
+   "after": "the match on TV.",
+   "wrong": [
+    "watches",
+    "watching",
+    "are watch"
+   ],
+   "ukrainian": "Вони дивляться матч по телевізору."
+  },
+  {
+   "id": "g004",
+   "topic": "present-simple",
+   "before": "You",
+   "answer": "run",
+   "after": "very fast.",
+   "wrong": [
+    "runs",
+    "running",
+    "are run"
+   ],
+   "ukrainian": "Ти бігаєш дуже швидко."
+  },
+  {
+   "id": "g005",
+   "topic": "present-simple",
+   "before": "I always",
+   "answer": "wear",
+   "after": "my blue boots.",
+   "wrong": [
+    "wears",
+    "wearing",
+    "am wear"
+   ],
+   "ukrainian": "Я завжди ношу свої сині бутси."
+  },
+  {
+   "id": "g006",
+   "topic": "present-simple",
+   "before": "They",
+   "answer": "go",
+   "after": "to the stadium by bus.",
+   "wrong": [
+    "goes",
+    "going",
+    "are go"
+   ],
+   "ukrainian": "Вони їдуть на стадіон автобусом."
+  },
+  {
+   "id": "g007",
+   "topic": "present-simple-3rd",
+   "before": "He",
+   "answer": "plays",
+   "after": "football every day.",
+   "wrong": [
+    "play",
+    "playing",
+    "is play"
+   ],
+   "ukrainian": "Він грає у футбол щодня."
+  },
+  {
+   "id": "g008",
+   "topic": "present-simple-3rd",
+   "before": "She",
+   "answer": "runs",
+   "after": "in the park every morning.",
+   "wrong": [
+    "run",
+    "running",
+    "is run"
+   ],
+   "ukrainian": "Вона бігає в парку щоранку."
+  },
+  {
+   "id": "g009",
+   "topic": "present-simple-3rd",
+   "before": "My coach",
+   "answer": "lives",
+   "after": "in Kyiv.",
+   "wrong": [
+    "live",
+    "living",
+    "is live"
+   ],
+   "ukrainian": "Мій тренер живе в Києві."
+  },
+  {
+   "id": "g010",
+   "topic": "present-simple-3rd",
+   "before": "Our striker",
+   "answer": "scores",
+   "after": "a lot of goals.",
+   "wrong": [
+    "score",
+    "scoring",
+    "is score"
+   ],
+   "ukrainian": "Наш нападник забиває багато голів."
+  },
+  {
+   "id": "g011",
+   "topic": "present-simple-3rd",
+   "before": "My brother",
+   "answer": "studies",
+   "after": "English at school.",
+   "wrong": [
+    "study",
+    "studys",
+    "studying"
+   ],
+   "ukrainian": "Мій брат вивчає англійську в школі."
+  },
+  {
+   "id": "g012",
+   "topic": "present-simple-3rd",
+   "before": "He",
+   "answer": "watches",
+   "after": "football on TV.",
+   "wrong": [
+    "watch",
+    "watchs",
+    "watching"
+   ],
+   "ukrainian": "Він дивиться футбол по телевізору."
+  },
+  {
+   "id": "g013",
+   "topic": "present-simple-3rd",
+   "before": "She",
+   "answer": "goes",
+   "after": "to training on Friday.",
+   "wrong": [
+    "go",
+    "gos",
+    "going"
+   ],
+   "ukrainian": "Вона ходить на тренування в п'ятницю."
+  },
+  {
+   "id": "g014",
+   "topic": "present-simple-questions",
+   "before": "",
+   "answer": "Do",
+   "after": "you play football?",
+   "wrong": [
+    "Does",
+    "Are",
+    "Is"
+   ],
+   "ukrainian": "Ти граєш у футбол?"
+  },
+  {
+   "id": "g015",
+   "topic": "present-simple-questions",
+   "before": "",
+   "answer": "Does",
+   "after": "he play for your team?",
+   "wrong": [
+    "Do",
+    "Is",
+    "Are"
+   ],
+   "ukrainian": "Він грає за твою команду?"
+  },
+  {
+   "id": "g016",
+   "topic": "present-simple-questions",
+   "before": "I",
+   "answer": "don't",
+   "after": "like cold weather.",
+   "wrong": [
+    "doesn't",
+    "not",
+    "am not"
+   ],
+   "ukrainian": "Я не люблю холодну погоду."
+  },
+  {
+   "id": "g017",
+   "topic": "present-simple-questions",
+   "before": "She",
+   "answer": "doesn't",
+   "after": "play tennis.",
+   "wrong": [
+    "don't",
+    "isn't",
+    "not"
+   ],
+   "ukrainian": "Вона не грає в теніс."
+  },
+  {
+   "id": "g018",
+   "topic": "present-simple-questions",
+   "before": "Does he",
+   "answer": "like",
+   "after": "football?",
+   "wrong": [
+    "likes",
+    "liking",
+    "liked"
+   ],
+   "ukrainian": "Він любить футбол?"
+  },
+  {
+   "id": "g019",
+   "topic": "present-simple-questions",
+   "before": "Where",
+   "answer": "do",
+   "after": "you train?",
+   "wrong": [
+    "does",
+    "are",
+    "is"
+   ],
+   "ukrainian": "Де ти тренуєшся?"
+  },
+  {
+   "id": "g020",
+   "topic": "present-simple-questions",
+   "before": "What time",
+   "answer": "does",
+   "after": "the match start?",
+   "wrong": [
+    "do",
+    "is",
+    "are"
+   ],
+   "ukrainian": "О котрій починається матч?"
+  },
+  {
+   "id": "g021",
+   "topic": "present-continuous",
+   "before": "Look! He",
+   "answer": "is running",
+   "after": "to the goal.",
+   "wrong": [
+    "runs",
+    "are running",
+    "run"
+   ],
+   "ukrainian": "Дивись! Він біжить до воріт."
+  },
+  {
+   "id": "g022",
+   "topic": "present-continuous",
+   "before": "The fans",
+   "answer": "are singing",
+   "after": "now.",
+   "wrong": [
+    "is singing",
+    "sing",
+    "singing"
+   ],
+   "ukrainian": "Вболівальники зараз співають."
+  },
+  {
+   "id": "g023",
+   "topic": "present-continuous",
+   "before": "I",
+   "answer": "am watching",
+   "after": "the match.",
+   "wrong": [
+    "is watching",
+    "watch",
+    "watching"
+   ],
+   "ukrainian": "Я дивлюся матч."
+  },
+  {
+   "id": "g024",
+   "topic": "present-continuous",
+   "before": "We",
+   "answer": "are winning",
+   "after": "two one!",
+   "wrong": [
+    "is winning",
+    "win",
+    "wins"
+   ],
+   "ukrainian": "Ми ведемо два — один!"
+  },
+  {
+   "id": "g025",
+   "topic": "present-continuous",
+   "before": "She",
+   "answer": "is dribbling",
+   "after": "past the defender.",
+   "wrong": [
+    "are dribbling",
+    "dribble",
+    "dribbles"
+   ],
+   "ukrainian": "Вона обводить захисника."
+  },
+  {
+   "id": "g026",
+   "topic": "present-continuous",
+   "before": "The players",
+   "answer": "are celebrating",
+   "after": "the goal.",
+   "wrong": [
+    "is celebrating",
+    "celebrate",
+    "celebrates"
+   ],
+   "ukrainian": "Гравці святкують гол."
+  },
+  {
+   "id": "g027",
+   "topic": "present-continuous",
+   "before": "Listen! The coach",
+   "answer": "is shouting",
+   "after": "at us.",
+   "wrong": [
+    "shouts",
+    "are shouting",
+    "shout"
+   ],
+   "ukrainian": "Слухай! Тренер кричить на нас."
+  },
+  {
+   "id": "g028",
+   "topic": "present-continuous-questions",
+   "before": "What",
+   "answer": "is",
+   "after": "he doing?",
+   "wrong": [
+    "are",
+    "do",
+    "does"
+   ],
+   "ukrainian": "Що він робить?"
+  },
+  {
+   "id": "g029",
+   "topic": "present-continuous-questions",
+   "before": "",
+   "answer": "Are",
+   "after": "they playing today?",
+   "wrong": [
+    "Is",
+    "Do",
+    "Does"
+   ],
+   "ukrainian": "Вони сьогодні грають?"
+  },
+  {
+   "id": "g030",
+   "topic": "present-continuous-questions",
+   "before": "We",
+   "answer": "are not",
+   "after": "playing well.",
+   "wrong": [
+    "is not",
+    "do not",
+    "not"
+   ],
+   "ukrainian": "Ми граємо не дуже добре."
+  },
+  {
+   "id": "g031",
+   "topic": "present-continuous-questions",
+   "before": "Why",
+   "answer": "is",
+   "after": "the referee stopping the game?",
+   "wrong": [
+    "are",
+    "does",
+    "do"
+   ],
+   "ukrainian": "Чому суддя зупиняє гру?"
+  },
+  {
+   "id": "g032",
+   "topic": "present-continuous-questions",
+   "before": "",
+   "answer": "Is",
+   "after": "it raining?",
+   "wrong": [
+    "Are",
+    "Does",
+    "Do"
+   ],
+   "ukrainian": "Іде дощ?"
+  },
+  {
+   "id": "g033",
+   "topic": "present-continuous-questions",
+   "before": "He",
+   "answer": "isn't",
+   "after": "wearing gloves.",
+   "wrong": [
+    "aren't",
+    "doesn't",
+    "don't"
+   ],
+   "ukrainian": "На ньому немає рукавиць."
+  },
+  {
+   "id": "g034",
+   "topic": "simple-vs-continuous",
+   "before": "He usually",
+   "answer": "plays",
+   "after": "on the left.",
+   "wrong": [
+    "is playing",
+    "play",
+    "playing"
+   ],
+   "ukrainian": "Зазвичай він грає зліва."
+  },
+  {
+   "id": "g035",
+   "topic": "simple-vs-continuous",
+   "before": "Today he",
+   "answer": "is playing",
+   "after": "on the right.",
+   "wrong": [
+    "plays",
+    "play",
+    "are playing"
+   ],
+   "ukrainian": "Сьогодні він грає справа."
+  },
+  {
+   "id": "g036",
+   "topic": "simple-vs-continuous",
+   "before": "I",
+   "answer": "train",
+   "after": "every Monday.",
+   "wrong": [
+    "am training",
+    "trains",
+    "training"
+   ],
+   "ukrainian": "Я тренуюся щопонеділка."
+  },
+  {
+   "id": "g037",
+   "topic": "simple-vs-continuous",
+   "before": "Look! The goalkeeper",
+   "answer": "is catching",
+   "after": "the ball.",
+   "wrong": [
+    "catches",
+    "catch",
+    "are catching"
+   ],
+   "ukrainian": "Дивись! Воротар ловить м'яч."
+  },
+  {
+   "id": "g038",
+   "topic": "simple-vs-continuous",
+   "before": "We never",
+   "answer": "play",
+   "after": "on Sundays.",
+   "wrong": [
+    "are playing",
+    "plays",
+    "playing"
+   ],
+   "ukrainian": "Ми ніколи не граємо в неділю."
+  },
+  {
+   "id": "g039",
+   "topic": "simple-vs-continuous",
+   "before": "It",
+   "answer": "is raining",
+   "after": "now, so we are inside.",
+   "wrong": [
+    "rains",
+    "rain",
+    "raining"
+   ],
+   "ukrainian": "Зараз іде дощ, тож ми всередині."
+  },
+  {
+   "id": "g040",
+   "topic": "past-be",
+   "before": "The match",
+   "answer": "was",
+   "after": "great.",
+   "wrong": [
+    "were",
+    "is",
+    "be"
+   ],
+   "ukrainian": "Матч був чудовий."
+  },
+  {
+   "id": "g041",
+   "topic": "past-be",
+   "before": "We",
+   "answer": "were",
+   "after": "at the stadium yesterday.",
+   "wrong": [
+    "was",
+    "are",
+    "be"
+   ],
+   "ukrainian": "Учора ми були на стадіоні."
+  },
+  {
+   "id": "g042",
+   "topic": "past-be",
+   "before": "I",
+   "answer": "was",
+   "after": "tired after training.",
+   "wrong": [
+    "were",
+    "am",
+    "be"
+   ],
+   "ukrainian": "Я був утомлений після тренування."
+  },
+  {
+   "id": "g043",
+   "topic": "past-be",
+   "before": "The fans",
+   "answer": "were",
+   "after": "happy last night.",
+   "wrong": [
+    "was",
+    "are",
+    "is"
+   ],
+   "ukrainian": "Учора ввечері вболівальники були щасливі."
+  },
+  {
+   "id": "g044",
+   "topic": "past-be",
+   "before": "",
+   "answer": "Was",
+   "after": "it a penalty?",
+   "wrong": [
+    "Were",
+    "Is",
+    "Did"
+   ],
+   "ukrainian": "Це було пенальті?"
+  },
+  {
+   "id": "g045",
+   "topic": "past-be",
+   "before": "They",
+   "answer": "weren't",
+   "after": "ready two days ago.",
+   "wrong": [
+    "wasn't",
+    "aren't",
+    "didn't"
+   ],
+   "ukrainian": "Два дні тому вони не були готові."
+  },
+  {
+   "id": "g046",
+   "topic": "past-regular",
+   "before": "We",
+   "answer": "played",
+   "after": "well last Saturday.",
+   "wrong": [
+    "play",
+    "plays",
+    "playing"
+   ],
+   "ukrainian": "Минулої суботи ми добре зіграли."
+  },
+  {
+   "id": "g047",
+   "topic": "past-regular",
+   "before": "He",
+   "answer": "passed",
+   "after": "the ball to me.",
+   "wrong": [
+    "pass",
+    "passes",
+    "passing"
+   ],
+   "ukrainian": "Він віддав мені пас."
+  },
+  {
+   "id": "g048",
+   "topic": "past-regular",
+   "before": "She",
+   "answer": "kicked",
+   "after": "the ball very hard.",
+   "wrong": [
+    "kick",
+    "kicks",
+    "kickked"
+   ],
+   "ukrainian": "Вона дуже сильно вдарила по м'ячу."
+  },
+  {
+   "id": "g049",
+   "topic": "past-regular",
+   "before": "I",
+   "answer": "stopped",
+   "after": "the ball with my chest.",
+   "wrong": [
+    "stoped",
+    "stop",
+    "stops"
+   ],
+   "ukrainian": "Я зупинив м'яч грудьми."
+  },
+  {
+   "id": "g050",
+   "topic": "past-regular",
+   "before": "The goalkeeper",
+   "answer": "jumped",
+   "after": "and saved it.",
+   "wrong": [
+    "jump",
+    "jumps",
+    "jumpt"
+   ],
+   "ukrainian": "Воротар стрибнув і відбив м'яч."
+  },
+  {
+   "id": "g051",
+   "topic": "past-regular",
+   "before": "We",
+   "answer": "tried",
+   "after": "again.",
+   "wrong": [
+    "tryed",
+    "try",
+    "tries"
+   ],
+   "ukrainian": "Ми спробували ще раз."
+  },
+  {
+   "id": "g052",
+   "topic": "past-irregular",
+   "before": "We",
+   "answer": "won",
+   "after": "the match yesterday.",
+   "wrong": [
+    "winned",
+    "win",
+    "wins"
+   ],
+   "ukrainian": "Учора ми виграли матч."
+  },
+  {
+   "id": "g053",
+   "topic": "past-irregular",
+   "before": "He",
+   "answer": "came",
+   "after": "to training late.",
+   "wrong": [
+    "comed",
+    "come",
+    "comes"
+   ],
+   "ukrainian": "Він прийшов на тренування пізно."
+  },
+  {
+   "id": "g054",
+   "topic": "past-irregular",
+   "before": "I",
+   "answer": "saw",
+   "after": "a great goal last night.",
+   "wrong": [
+    "seed",
+    "see",
+    "seen"
+   ],
+   "ukrainian": "Учора ввечері я бачив чудовий гол."
+  },
+  {
+   "id": "g055",
+   "topic": "past-irregular",
+   "before": "I",
+   "answer": "bought",
+   "after": "new boots last week.",
+   "wrong": [
+    "buyed",
+    "buy",
+    "brought"
+   ],
+   "ukrainian": "Минулого тижня я купив нові бутси."
+  },
+  {
+   "id": "g056",
+   "topic": "past-irregular",
+   "before": "He",
+   "answer": "fell",
+   "after": "in the box.",
+   "wrong": [
+    "falled",
+    "fall",
+    "felt"
+   ],
+   "ukrainian": "Він упав у штрафному майданчику."
+  },
+  {
+   "id": "g057",
+   "topic": "past-irregular",
+   "before": "We",
+   "answer": "left",
+   "after": "the stadium at nine.",
+   "wrong": [
+    "leaved",
+    "leave",
+    "lived"
+   ],
+   "ukrainian": "Ми пішли зі стадіону о дев'ятій."
+  },
+  {
+   "id": "g058",
+   "topic": "past-irregular",
+   "before": "The coach",
+   "answer": "told",
+   "after": "us to run.",
+   "wrong": [
+    "telled",
+    "tell",
+    "said"
+   ],
+   "ukrainian": "Тренер сказав нам бігти."
+  },
+  {
+   "id": "g059",
+   "topic": "past-irregular",
+   "before": "I",
+   "answer": "met",
+   "after": "my favourite player!",
+   "wrong": [
+    "meeted",
+    "meet",
+    "meat"
+   ],
+   "ukrainian": "Я зустрів свого улюбленого гравця!"
+  },
+  {
+   "id": "g060",
+   "topic": "past-irregular",
+   "before": "The match",
+   "answer": "began",
+   "after": "at six.",
+   "wrong": [
+    "begined",
+    "begin",
+    "begun"
+   ],
+   "ukrainian": "Матч почався о шостій."
+  },
+  {
+   "id": "g061",
+   "topic": "past-irregular",
+   "before": "I",
+   "answer": "wore",
+   "after": "my lucky shirt.",
+   "wrong": [
+    "weared",
+    "wear",
+    "were"
+   ],
+   "ukrainian": "Я вдягнув свою щасливу футболку."
+  },
+  {
+   "id": "g062",
+   "topic": "past-irregular",
+   "before": "The goalkeeper",
+   "answer": "caught",
+   "after": "the ball.",
+   "wrong": [
+    "catched",
+    "catch",
+    "cought"
+   ],
+   "ukrainian": "Воротар спіймав м'яч."
+  },
+  {
+   "id": "g063",
+   "topic": "past-irregular",
+   "before": "We",
+   "answer": "had",
+   "after": "a great time.",
+   "wrong": [
+    "haved",
+    "have",
+    "has"
+   ],
+   "ukrainian": "Ми чудово провели час."
+  },
+  {
+   "id": "g064",
+   "topic": "past-questions",
+   "before": "",
+   "answer": "Did",
+   "after": "you win the match?",
+   "wrong": [
+    "Do",
+    "Were",
+    "Was"
+   ],
+   "ukrainian": "Ви виграли матч?"
+  },
+  {
+   "id": "g065",
+   "topic": "past-questions",
+   "before": "We",
+   "answer": "didn't",
+   "after": "lose.",
+   "wrong": [
+    "don't",
+    "weren't",
+    "wasn't"
+   ],
+   "ukrainian": "Ми не програли."
+  },
+  {
+   "id": "g066",
+   "topic": "past-questions",
+   "before": "Did he",
+   "answer": "score",
+   "after": "a goal?",
+   "wrong": [
+    "scored",
+    "scores",
+    "scoring"
+   ],
+   "ukrainian": "Він забив гол?"
+  },
+  {
+   "id": "g067",
+   "topic": "past-questions",
+   "before": "Where",
+   "answer": "did",
+   "after": "you play last week?",
+   "wrong": [
+    "do",
+    "were",
+    "was"
+   ],
+   "ukrainian": "Де ти грав минулого тижня?"
+  },
+  {
+   "id": "g068",
+   "topic": "past-questions",
+   "before": "She didn't",
+   "answer": "come",
+   "after": "to training.",
+   "wrong": [
+    "came",
+    "comes",
+    "coming"
+   ],
+   "ukrainian": "Вона не прийшла на тренування."
+  },
+  {
+   "id": "g069",
+   "topic": "past-questions",
+   "before": "What",
+   "answer": "did",
+   "after": "the coach say?",
+   "wrong": [
+    "does",
+    "was",
+    "is"
+   ],
+   "ukrainian": "Що сказав тренер?"
+  },
+  {
+   "id": "g070",
+   "topic": "past-mixed",
+   "before": "Yesterday we",
+   "answer": "played",
+   "after": "against Shakhtar.",
+   "wrong": [
+    "play",
+    "were play",
+    "playing"
+   ],
+   "ukrainian": "Учора ми грали проти «Шахтаря»."
+  },
+  {
+   "id": "g071",
+   "topic": "past-mixed",
+   "before": "It",
+   "answer": "was",
+   "after": "a hard match.",
+   "wrong": [
+    "were",
+    "is",
+    "did"
+   ],
+   "ukrainian": "Це був важкий матч."
+  },
+  {
+   "id": "g072",
+   "topic": "past-mixed",
+   "before": "Max",
+   "answer": "scored",
+   "after": "in the first half.",
+   "wrong": [
+    "score",
+    "scores",
+    "scoring"
+   ],
+   "ukrainian": "Макс забив у першому таймі."
+  },
+  {
+   "id": "g073",
+   "topic": "past-mixed",
+   "before": "The goalkeeper",
+   "answer": "made",
+   "after": "a great save.",
+   "wrong": [
+    "maked",
+    "make",
+    "did"
+   ],
+   "ukrainian": "Воротар зробив чудовий сейв."
+  },
+  {
+   "id": "g074",
+   "topic": "past-mixed",
+   "before": "We",
+   "answer": "didn't give",
+   "after": "up.",
+   "wrong": [
+    "didn't gave",
+    "don't gave",
+    "not gave"
+   ],
+   "ukrainian": "Ми не здалися."
+  },
+  {
+   "id": "g075",
+   "topic": "past-mixed",
+   "before": "In the end we",
+   "answer": "won",
+   "after": "two one.",
+   "wrong": [
+    "winned",
+    "win",
+    "wons"
+   ],
+   "ukrainian": "Зрештою ми виграли два — один."
+  },
+  {
+   "id": "g076",
+   "topic": "future-will",
+   "before": "We",
+   "answer": "will win",
+   "after": "the next match.",
+   "wrong": [
+    "will wins",
+    "will won",
+    "winning"
+   ],
+   "ukrainian": "Ми виграємо наступний матч."
+  },
+  {
+   "id": "g077",
+   "topic": "future-will",
+   "before": "It",
+   "answer": "will rain",
+   "after": "tonight.",
+   "wrong": [
+    "will rains",
+    "will rained",
+    "raining"
+   ],
+   "ukrainian": "Сьогодні ввечері піде дощ."
+  },
+  {
+   "id": "g078",
+   "topic": "future-will",
+   "before": "I",
+   "answer": "will call",
+   "after": "you later.",
+   "wrong": [
+    "will calls",
+    "will called",
+    "calling"
+   ],
+   "ukrainian": "Я подзвоню тобі пізніше."
+  },
+  {
+   "id": "g079",
+   "topic": "future-will",
+   "before": "The fans",
+   "answer": "will be",
+   "after": "happy.",
+   "wrong": [
+    "will are",
+    "will is",
+    "being"
+   ],
+   "ukrainian": "Вболівальники будуть щасливі."
+  },
+  {
+   "id": "g080",
+   "topic": "future-will",
+   "before": "",
+   "answer": "Will",
+   "after": "you come to the match?",
+   "wrong": [
+    "Are",
+    "Does",
+    "Is"
+   ],
+   "ukrainian": "Ти прийдеш на матч?"
+  },
+  {
+   "id": "g081",
+   "topic": "future-will",
+   "before": "He",
+   "answer": "won't",
+   "after": "play tomorrow.",
+   "wrong": [
+    "willn't",
+    "not will",
+    "don't will"
+   ],
+   "ukrainian": "Він не гратиме завтра."
+  },
+  {
+   "id": "g082",
+   "topic": "future-will",
+   "before": "I think we",
+   "answer": "will win",
+   "after": ".",
+   "wrong": [
+    "will wins",
+    "win will",
+    "winning"
+   ],
+   "ukrainian": "Я думаю, ми виграємо."
+  },
+  {
+   "id": "g083",
+   "topic": "future-will",
+   "before": "Maybe it",
+   "answer": "will snow",
+   "after": "tomorrow.",
+   "wrong": [
+    "will snows",
+    "snow will",
+    "snowing"
+   ],
+   "ukrainian": "Можливо, завтра піде сніг."
+  },
+  {
+   "id": "g084",
+   "topic": "future-will",
+   "before": "I hope you",
+   "answer": "will come",
+   "after": "to the final.",
+   "wrong": [
+    "will comes",
+    "will came",
+    "coming"
+   ],
+   "ukrainian": "Сподіваюся, ти прийдеш на фінал."
+  },
+  {
+   "id": "g085",
+   "topic": "future-will",
+   "before": "He probably",
+   "answer": "won't",
+   "after": "be ready.",
+   "wrong": [
+    "willn't",
+    "not will",
+    "isn't will"
+   ],
+   "ukrainian": "Мабуть, він не буде готовий."
+  },
+  {
+   "id": "g086",
+   "topic": "future-will",
+   "before": "Who",
+   "answer": "will",
+   "after": "win the league?",
+   "wrong": [
+    "are",
+    "was",
+    "is"
+   ],
+   "ukrainian": "Хто виграє лігу?"
+  },
+  {
+   "id": "g087",
+   "topic": "future-will",
+   "before": "I'm sure they",
+   "answer": "will score",
+   "after": "a lot of goals.",
+   "wrong": [
+    "will scores",
+    "will scored",
+    "scoring"
+   ],
+   "ukrainian": "Я впевнений, вони заб'ють багато голів."
+  },
+  {
+   "id": "g088",
+   "topic": "going-to",
+   "before": "We",
+   "answer": "are going to",
+   "after": "attack on the left.",
+   "wrong": [
+    "is going to",
+    "going to",
+    "are go to"
+   ],
+   "ukrainian": "Ми збираємося атакувати зліва."
+  },
+  {
+   "id": "g089",
+   "topic": "going-to",
+   "before": "He",
+   "answer": "is going to",
+   "after": "take the penalty.",
+   "wrong": [
+    "are going to",
+    "going to",
+    "is go to"
+   ],
+   "ukrainian": "Він збирається бити пенальті."
+  },
+  {
+   "id": "g090",
+   "topic": "going-to",
+   "before": "I",
+   "answer": "am going to",
+   "after": "train every day.",
+   "wrong": [
+    "is going to",
+    "are going to",
+    "going to"
+   ],
+   "ukrainian": "Я збираюся тренуватися щодня."
+  },
+  {
+   "id": "g091",
+   "topic": "going-to",
+   "before": "They",
+   "answer": "aren't going to",
+   "after": "play today.",
+   "wrong": [
+    "isn't going to",
+    "not going to",
+    "don't going to"
+   ],
+   "ukrainian": "Вони не збираються сьогодні грати."
+  },
+  {
+   "id": "g092",
+   "topic": "going-to",
+   "before": "",
+   "answer": "Are",
+   "after": "you going to watch the final?",
+   "wrong": [
+    "Is",
+    "Do",
+    "Will"
+   ],
+   "ukrainian": "Ти збираєшся дивитися фінал?"
+  },
+  {
+   "id": "g093",
+   "topic": "going-to",
+   "before": "Look at the clouds! It",
+   "answer": "is going to",
+   "after": "rain.",
+   "wrong": [
+    "are going to",
+    "going to",
+    "is go to"
+   ],
+   "ukrainian": "Глянь на хмари! Зараз піде дощ."
+  },
+  {
+   "id": "g094",
+   "topic": "future-mixed",
+   "before": "I",
+   "answer": "am going to",
+   "after": "buy new boots.",
+   "wrong": [
+    "am going",
+    "am go to",
+    "will going to"
+   ],
+   "ukrainian": "Я збираюся купити нові бутси."
+  },
+  {
+   "id": "g095",
+   "topic": "future-mixed",
+   "before": "I think it",
+   "answer": "will be",
+   "after": "a draw.",
+   "wrong": [
+    "will is",
+    "is be",
+    "being"
+   ],
+   "ukrainian": "Думаю, буде нічия."
+  },
+  {
+   "id": "g096",
+   "topic": "future-mixed",
+   "before": "Look! He",
+   "answer": "is going to",
+   "after": "shoot!",
+   "wrong": [
+    "is go to",
+    "going to",
+    "are going to"
+   ],
+   "ukrainian": "Дивись! Він зараз ударить!"
+  },
+  {
+   "id": "g097",
+   "topic": "future-mixed",
+   "before": "Don't worry, I",
+   "answer": "will help",
+   "after": "you.",
+   "wrong": [
+    "will helps",
+    "helping",
+    "will helped"
+   ],
+   "ukrainian": "Не хвилюйся, я тобі допоможу."
+  },
+  {
+   "id": "g098",
+   "topic": "future-mixed",
+   "before": "We",
+   "answer": "are going to",
+   "after": "play in the final!",
+   "wrong": [
+    "are go to",
+    "is going to",
+    "going to"
+   ],
+   "ukrainian": "Ми гратимемо у фіналі!"
+  },
+  {
+   "id": "g099",
+   "topic": "future-mixed",
+   "before": "The fans",
+   "answer": "will love",
+   "after": "this goal.",
+   "wrong": [
+    "will loves",
+    "loving",
+    "will loved"
+   ],
+   "ukrainian": "Вболівальникам сподобається цей гол."
+  },
+  {
+   "id": "g100",
+   "topic": "present-perfect",
+   "before": "I",
+   "answer": "have scored",
+   "after": "ten goals this season.",
+   "wrong": [
+    "has scored",
+    "have score",
+    "am scored"
+   ],
+   "ukrainian": "Цього сезону я забив десять голів."
+  },
+  {
+   "id": "g101",
+   "topic": "present-perfect",
+   "before": "She",
+   "answer": "has won",
+   "after": "the cup.",
+   "wrong": [
+    "have won",
+    "has win",
+    "has winned"
+   ],
+   "ukrainian": "Вона виграла кубок."
+  },
+  {
+   "id": "g102",
+   "topic": "present-perfect",
+   "before": "We",
+   "answer": "have seen",
+   "after": "this match before.",
+   "wrong": [
+    "have saw",
+    "has seen",
+    "have see"
+   ],
+   "ukrainian": "Ми вже бачили цей матч."
+  },
+  {
+   "id": "g103",
+   "topic": "present-perfect",
+   "before": "He",
+   "answer": "has broken",
+   "after": "the record!",
+   "wrong": [
+    "has broke",
+    "have broken",
+    "has breaked"
+   ],
+   "ukrainian": "Він побив рекорд!"
+  },
+  {
+   "id": "g104",
+   "topic": "present-perfect",
+   "before": "They",
+   "answer": "have played",
+   "after": "ten matches.",
+   "wrong": [
+    "has played",
+    "have play",
+    "are played"
+   ],
+   "ukrainian": "Вони зіграли десять матчів."
+  },
+  {
+   "id": "g105",
+   "topic": "pp-already-yet",
+   "before": "The match has",
+   "answer": "just",
+   "after": "started.",
+   "wrong": [
+    "yet",
+    "ago",
+    "tomorrow"
+   ],
+   "ukrainian": "Матч щойно почався."
+  },
+  {
+   "id": "g106",
+   "topic": "pp-already-yet",
+   "before": "We haven't lost",
+   "answer": "yet",
+   "after": ".",
+   "wrong": [
+    "never",
+    "just",
+    "ago"
+   ],
+   "ukrainian": "Ми ще не програли."
+  },
+  {
+   "id": "g107",
+   "topic": "pp-already-yet",
+   "before": "I have",
+   "answer": "already",
+   "after": "done my homework.",
+   "wrong": [
+    "yet",
+    "ago",
+    "tomorrow"
+   ],
+   "ukrainian": "Я вже зробив домашнє завдання."
+  },
+  {
+   "id": "g108",
+   "topic": "pp-already-yet",
+   "before": "",
+   "answer": "Have",
+   "after": "you finished yet?",
+   "wrong": [
+    "Has",
+    "Is",
+    "Does"
+   ],
+   "ukrainian": "Ти вже закінчив?"
+  },
+  {
+   "id": "g109",
+   "topic": "pp-already-yet",
+   "before": "He",
+   "answer": "hasn't",
+   "after": "arrived yet.",
+   "wrong": [
+    "haven't",
+    "isn't",
+    "doesn't"
+   ],
+   "ukrainian": "Він ще не приїхав."
+  },
+  {
+   "id": "g110",
+   "topic": "pp-already-yet",
+   "before": "They",
+   "answer": "have just",
+   "after": "scored!",
+   "wrong": [
+    "has just",
+    "just have",
+    "have yet"
+   ],
+   "ukrainian": "Вони щойно забили!"
+  },
+  {
+   "id": "g111",
+   "topic": "pp-ever-never",
+   "before": "Have you",
+   "answer": "ever",
+   "after": "played in a final?",
+   "wrong": [
+    "never",
+    "yet",
+    "ago"
+   ],
+   "ukrainian": "Ти коли-небудь грав у фіналі?"
+  },
+  {
+   "id": "g112",
+   "topic": "pp-ever-never",
+   "before": "I have",
+   "answer": "never",
+   "after": "been to Spain.",
+   "wrong": [
+    "ever",
+    "yet",
+    "ago"
+   ],
+   "ukrainian": "Я ніколи не був в Іспанії."
+  },
+  {
+   "id": "g113",
+   "topic": "pp-ever-never",
+   "before": "She",
+   "answer": "has been",
+   "after": "to London twice.",
+   "wrong": [
+    "have been",
+    "has be",
+    "is been"
+   ],
+   "ukrainian": "Вона двічі була в Лондоні."
+  },
+  {
+   "id": "g114",
+   "topic": "pp-ever-never",
+   "before": "",
+   "answer": "Has",
+   "after": "he ever won a trophy?",
+   "wrong": [
+    "Have",
+    "Is",
+    "Does"
+   ],
+   "ukrainian": "Він коли-небудь вигравав трофей?"
+  },
+  {
+   "id": "g115",
+   "topic": "pp-ever-never",
+   "before": "We have",
+   "answer": "never",
+   "after": "lost at home.",
+   "wrong": [
+    "ever",
+    "yet",
+    "ago"
+   ],
+   "ukrainian": "Ми ніколи не програвали вдома."
+  },
+  {
+   "id": "g116",
+   "topic": "tenses-mixed",
+   "before": "Every day I",
+   "answer": "train",
+   "after": "hard.",
+   "wrong": [
+    "trains",
+    "am train",
+    "training"
+   ],
+   "ukrainian": "Я щодня наполегливо тренуюся."
+  },
+  {
+   "id": "g117",
+   "topic": "tenses-mixed",
+   "before": "Right now we",
+   "answer": "are playing",
+   "after": "the final!",
+   "wrong": [
+    "plays",
+    "played",
+    "is playing"
+   ],
+   "ukrainian": "Просто зараз ми граємо у фіналі!"
+  },
+  {
+   "id": "g118",
+   "topic": "tenses-mixed",
+   "before": "Two years ago we",
+   "answer": "lost",
+   "after": "in the semi-final.",
+   "wrong": [
+    "lose",
+    "have lost",
+    "will lose"
+   ],
+   "ukrainian": "Два роки тому ми програли в півфіналі."
+  },
+  {
+   "id": "g119",
+   "topic": "tenses-mixed",
+   "before": "We",
+   "answer": "have never won",
+   "after": "this cup before.",
+   "wrong": [
+    "has never won",
+    "have never win",
+    "are never won"
+   ],
+   "ukrainian": "Ми ніколи раніше не вигравали цей кубок."
+  },
+  {
+   "id": "g120",
+   "topic": "tenses-mixed",
+   "before": "Tomorrow we",
+   "answer": "will celebrate",
+   "after": "with the fans.",
+   "wrong": [
+    "celebrated",
+    "will celebrated",
+    "celebrating"
+   ],
+   "ukrainian": "Завтра ми святкуватимемо з уболівальниками."
+  },
+  {
+   "id": "g121",
+   "topic": "tenses-mixed",
+   "before": "Look! The captain",
+   "answer": "is lifting",
+   "after": "the cup!",
+   "wrong": [
+    "are lifting",
+    "lifted",
+    "is lift"
+   ],
+   "ukrainian": "Дивись! Капітан піднімає кубок!"
+  }
+ ],
+ "verbs": [
+  {
+   "base": "go",
+   "past": "went",
+   "participle": "gone",
+   "ukrainian": "йти"
+  },
+  {
+   "base": "come",
+   "past": "came",
+   "participle": "come",
+   "ukrainian": "приходити"
+  },
+  {
+   "base": "win",
+   "past": "won",
+   "participle": "won",
+   "ukrainian": "вигравати"
+  },
+  {
+   "base": "lose",
+   "past": "lost",
+   "participle": "lost",
+   "ukrainian": "програвати"
+  },
+  {
+   "base": "run",
+   "past": "ran",
+   "participle": "run",
+   "ukrainian": "бігти"
+  },
+  {
+   "base": "see",
+   "past": "saw",
+   "participle": "seen",
+   "ukrainian": "бачити"
+  },
+  {
+   "base": "eat",
+   "past": "ate",
+   "participle": "eaten",
+   "ukrainian": "їсти"
+  },
+  {
+   "base": "drink",
+   "past": "drank",
+   "participle": "drunk",
+   "ukrainian": "пити"
+  },
+  {
+   "base": "take",
+   "past": "took",
+   "participle": "taken",
+   "ukrainian": "брати"
+  },
+  {
+   "base": "give",
+   "past": "gave",
+   "participle": "given",
+   "ukrainian": "давати"
+  },
+  {
+   "base": "make",
+   "past": "made",
+   "participle": "made",
+   "ukrainian": "створювати"
+  },
+  {
+   "base": "get",
+   "past": "got",
+   "participle": "got",
+   "ukrainian": "отримувати"
+  },
+  {
+   "base": "buy",
+   "past": "bought",
+   "participle": "bought",
+   "ukrainian": "купувати"
+  },
+  {
+   "base": "bring",
+   "past": "brought",
+   "participle": "brought",
+   "ukrainian": "приносити"
+  },
+  {
+   "base": "think",
+   "past": "thought",
+   "participle": "thought",
+   "ukrainian": "думати"
+  },
+  {
+   "base": "feel",
+   "past": "felt",
+   "participle": "felt",
+   "ukrainian": "відчувати"
+  },
+  {
+   "base": "fall",
+   "past": "fell",
+   "participle": "fallen",
+   "ukrainian": "падати"
+  },
+  {
+   "base": "hit",
+   "past": "hit",
+   "participle": "hit",
+   "ukrainian": "влучати"
+  },
+  {
+   "base": "keep",
+   "past": "kept",
+   "participle": "kept",
+   "ukrainian": "тримати"
+  },
+  {
+   "base": "leave",
+   "past": "left",
+   "participle": "left",
+   "ukrainian": "залишати"
+  },
+  {
+   "base": "meet",
+   "past": "met",
+   "participle": "met",
+   "ukrainian": "зустрічати"
+  },
+  {
+   "base": "put",
+   "past": "put",
+   "participle": "put",
+   "ukrainian": "класти"
+  },
+  {
+   "base": "say",
+   "past": "said",
+   "participle": "said",
+   "ukrainian": "казати"
+  },
+  {
+   "base": "tell",
+   "past": "told",
+   "participle": "told",
+   "ukrainian": "розповідати"
+  },
+  {
+   "base": "write",
+   "past": "wrote",
+   "participle": "written",
+   "ukrainian": "писати"
+  },
+  {
+   "base": "read",
+   "past": "read",
+   "participle": "read",
+   "ukrainian": "читати"
+  },
+  {
+   "base": "begin",
+   "past": "began",
+   "participle": "begun",
+   "ukrainian": "починати"
+  },
+  {
+   "base": "choose",
+   "past": "chose",
+   "participle": "chosen",
+   "ukrainian": "вибирати"
+  },
+  {
+   "base": "fly",
+   "past": "flew",
+   "participle": "flown",
+   "ukrainian": "літати"
+  },
+  {
+   "base": "forget",
+   "past": "forgot",
+   "participle": "forgotten",
+   "ukrainian": "забувати"
+  },
+  {
+   "base": "sit",
+   "past": "sat",
+   "participle": "sat",
+   "ukrainian": "сидіти"
+  },
+  {
+   "base": "stand",
+   "past": "stood",
+   "participle": "stood",
+   "ukrainian": "стояти"
+  },
+  {
+   "base": "know",
+   "past": "knew",
+   "participle": "known",
+   "ukrainian": "знати"
+  },
+  {
+   "base": "have",
+   "past": "had",
+   "participle": "had",
+   "ukrainian": "мати"
+  },
+  {
+   "base": "do",
+   "past": "did",
+   "participle": "done",
+   "ukrainian": "робити"
+  },
+  {
+   "base": "sleep",
+   "past": "slept",
+   "participle": "slept",
+   "ukrainian": "спати"
+  },
+  {
+   "base": "swim",
+   "past": "swam",
+   "participle": "swum",
+   "ukrainian": "плавати"
+  },
+  {
+   "base": "wear",
+   "past": "wore",
+   "participle": "worn",
+   "ukrainian": "носити"
+  },
+  {
+   "base": "break",
+   "past": "broke",
+   "participle": "broken",
+   "ukrainian": "ламати"
+  },
+  {
+   "base": "throw",
+   "past": "threw",
+   "participle": "thrown",
+   "ukrainian": "кидати"
+  },
+  {
+   "base": "catch",
+   "past": "caught",
+   "participle": "caught",
+   "ukrainian": "ловити"
+  }
+ ]
+}

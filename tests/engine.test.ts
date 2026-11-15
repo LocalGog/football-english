@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { content, validateContent } from '../src/lib/content';
-import { buildMatch, buildReview, tokenize, TIERS, type MatchPlan, type Rng } from '../src/lib/engine';
+import { buildMatch, buildReview, isUnscored, tokenize, TIERS, type MatchPlan, type Rng } from '../src/lib/engine';
 import { backupFileName, parseBackup, serializeBackup } from '../src/lib/backup';
 import { LEVEL_GATE, levelInfo, newProgress, nextMission, normalizeProgress, playTarget, recordAnswer, recordMatch } from '../src/lib/progress';
 import type { Progress } from '../src/lib/types';
@@ -18,7 +18,7 @@ function checkPlan(plan: MatchPlan, tier = 0): void {
   const last = plan.steps[plan.steps.length - 1];
   expect(last.kind === 'pick' && last.shot).toBe(true);
   expect(new Set(plan.steps.map((s) => s.key)).size).toBe(plan.steps.length);
-  expect(plan.questionCount).toBe(plan.steps.filter((s) => s.kind !== 'intro').length);
+  expect(plan.questionCount).toBe(plan.steps.filter((s) => !isUnscored(s)).length);
   for (const step of [...plan.steps, plan.spareShot]) {
     if (step.kind === 'pick') {
       expect(step.options).toContain(step.wordId);

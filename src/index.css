@@ -34,7 +34,10 @@ button { cursor: pointer; user-select: none; -webkit-user-select: none; touch-ac
 button:disabled { cursor: default; }
 :focus-visible { outline: 3px solid var(--color-gold); outline-offset: 2px; }
 
-.display { font-family: var(--font-display); font-weight: 800; font-style: italic; text-transform: uppercase; letter-spacing: 0.02em; }
+/* In the components layer so that utilities such as normal-case and not-italic can override it. */
+@layer components {
+  .display { font-family: var(--font-display); font-weight: 800; font-style: italic; text-transform: uppercase; letter-spacing: 0.02em; }
+}
 
 .pitch-stripes {
   background: repeating-linear-gradient(90deg, var(--color-pitch) 0 12.5%, var(--color-pitch-deep) 12.5% 25%);

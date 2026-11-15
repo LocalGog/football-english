@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Turtle, Volume2, X } from 'lucide-react';
-import type { BuildStep, DialogueStep, HearStep, IntroStep, MatchPlan, PickStep, Step } from '../lib/engine';
+import { grammarKey, type BuildStep, type DialogueStep, type GapStep, type HearStep, type IntroStep, type MatchPlan, type PickStep, type RuleStep, type Step, type VerbStep } from '../lib/engine';
 import { XP_FIRST_TRY, XP_GOAL, XP_RETRY } from '../lib/progress';
 import { speak, stopSpeaking, useSpeechStatus, type SpeechStatus } from '../lib/speech';
 import type { BallSkin, Content, MatchResult, PickMode, Settings, Stadium, Word } from '../lib/types';
@@ -22,6 +22,8 @@ interface Props {
   /** Shows Ukrainian under dialogue replies: on for the gentlest difficulty tier. */
   hints: boolean;
   onAnswer: (wordId: string, correct: boolean, mode: PickMode, chosen?: string) => void;
+  /** A gap or verb-form answer: topic, progress key, result. */
+  onGrammar: (topicId: string, key: string, correct: boolean) => void;
   onFinish: (result: MatchResult) => void;
   onExit: () => void;
 }
@@ -40,7 +42,7 @@ function mustWord(content: Content, id: string): Word {
   return w;
 }
 
-export function MissionScreen({ plan, content, settings, ball, stadium, hints, onAnswer, onFinish, onExit }: Props) {
+export function MissionScreen({ plan, content, settings, ball, stadium, hints, onAnswer, onGrammar, onFinish, onExit }: Props) {
   const [queue, setQueue] = useState<Step[]>(plan.steps);
   const [idx, setIdx] = useState(0);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
@@ -92,11 +94,12 @@ export function MissionScreen({ plan, content, settings, ball, stadium, hints, o
   }, [confirmExit]);
 
   const answer = (correct: boolean, rightAnswer: string, chosen?: string) => {
-    if (feedback || step.kind === 'intro') return;
+    if (feedback || step.kind === 'intro' || step.kind === 'rule') return;
     if (step.kind === 'pick') {
       onAnswer(step.wordId, correct, step.mode, chosen);
       if (!correct) missed.current.add(step.wordId);
     }
+    if (step.kind === 'gap' || step.kind === 'verb') onGrammar(step.topicId, grammarKey(step), correct);
     if (correct) setScore((s) => (step.retry ? { ...s, retry: s.retry + 1 } : { ...s, first: s.first + 1 }));
 
     if (step.kind === 'pick' && step.shot) {
@@ -149,6 +152,9 @@ export function MissionScreen({ plan, content, settings, ball, stadium, hints, o
       <main className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pb-4 pt-4">
         {isShot && <p className="display anim-pop mb-2 text-center text-2xl text-gold">Удар по воротах!</p>}
         {step.kind === 'intro' && <IntroView key={step.key} step={step} content={content} say={say} onNext={advance} />}
+        {step.kind === 'rule' && <RuleView key={step.key} step={step} content={content} say={say} onNext={advance} />}
+        {step.kind === 'gap' && <GapView key={step.key} step={step} content={content} say={say} locked={feedback !== null} onAnswer={answer} />}
+        {step.kind === 'verb' && <VerbView key={step.key} step={step} content={content} say={say} locked={feedback !== null} onAnswer={answer} />}
         {step.kind === 'pick' && (
           <PickView key={step.key} step={step} content={content} say={say} speechStatus={speechStatus} locked={feedback !== null} onAnswer={answer} />
         )}
@@ -159,7 +165,7 @@ export function MissionScreen({ plan, content, settings, ball, stadium, hints, o
           <HearView key={step.key} step={step} content={content} say={say} speechStatus={speechStatus} locked={feedback !== null} onAnswer={answer} />
         )}
         {step.kind === 'dialogue' && (
-          <DialogueView key={step.key} step={step} content={content} say={say} hints={hints} locked={feedback !== null} onAnswer={answer} />
+          <DialogueView key={step.key} step={step} content={content} say={say} hints={hints && !content.dialogues.find((d) => d.id === step.dialogueId)?.grammar} locked={feedback !== null} onAnswer={answer} />
         )}
       </main>
 
@@ -564,6 +570,170 @@ function DialogueView({ step, content, say, hints, locked, onAnswer }: DialogueP
             >
               <span className="block text-lg font-semibold">{option.english}</span>
               {(hints || chosen !== null) && <span className="block text-sm text-mute">{option.ukrainian}</span>}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/** Renders "He *plays* football" with the starred part highlighted. */
+function Highlighted({ text }: { text: string }) {
+  const parts = text.split('*');
+  return (
+    <>
+      {parts.map((part, i) =>
+        i % 2 === 1 ? (
+          <b key={i} className="text-gold">
+            {part}
+          </b>
+        ) : (
+          <span key={i}>{part}</span>
+        ),
+      )}
+    </>
+  );
+}
+
+/** Grammar rule card: one rule in Ukrainian and football examples. */
+function RuleView({ step, content, say, onNext }: { step: RuleStep; content: Content; say: Say; onNext: () => void }) {
+  const topic = content.grammarTopics.find((t) => t.id === step.topicId);
+  if (!topic) throw new Error(`Граматична тема «${step.topicId}» відсутня`);
+  return (
+    <div className="flex flex-1 flex-col gap-4" data-rule={topic.id}>
+      <p className="text-center text-sm font-semibold uppercase tracking-widest text-mute">Тактика від тренера</p>
+      <div className="anim-rise flex flex-1 flex-col gap-4 rounded-3xl border-2 border-gold/60 bg-gradient-to-b from-panel to-night p-5">
+        <h2 className="display text-3xl not-italic normal-case text-gold">{topic.title}</h2>
+        <p className="text-lg leading-snug">{topic.rule}</p>
+        <ul className="flex flex-col gap-2">
+          {topic.examples.map((e) => (
+            <li key={e.english}>
+              <button className="w-full rounded-2xl border border-line bg-night/60 px-4 py-3 text-left" onClick={() => say(e.english.replaceAll('*', ''))}>
+                <span className="flex items-center gap-2 text-lg font-semibold">
+                  <span className="min-w-0 flex-1">
+                    <Highlighted text={e.english} />
+                  </span>
+                  <Volume2 size={18} className="shrink-0 text-mute" />
+                </span>
+                <span className="block text-sm text-mute">{e.ukrainian}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <button className="display sticky bottom-0 flex h-16 shrink-0 items-center justify-center gap-2 rounded-2xl bg-pitch text-2xl text-chalk" onClick={onNext}>
+        Зрозуміло <ArrowRight size={24} />
+      </button>
+    </div>
+  );
+}
+
+interface GapProps {
+  step: GapStep;
+  content: Content;
+  say: Say;
+  locked: boolean;
+  onAnswer: (correct: boolean, rightAnswer: string) => void;
+}
+
+const join = (...parts: string[]) => parts.filter(Boolean).join(' ').replace(/ ([.,!?])/g, '$1');
+
+/** Choose the form that fits the gap. */
+function GapView({ step, content, say, locked, onAnswer }: GapProps) {
+  const item = content.grammarItemById.get(step.itemId);
+  if (!item) throw new Error(`Вправа «${step.itemId}» відсутня`);
+  const [chosen, setChosen] = useState<string | null>(null);
+  const full = join(item.before, item.answer, item.after);
+  const topic = content.grammarTopics.find((t) => t.id === item.topic);
+
+  const choose = (option: string) => {
+    if (chosen !== null || locked) return;
+    setChosen(option);
+    say(full);
+    onAnswer(option === item.answer, full);
+  };
+
+  const filled = chosen === null ? '_____' : item.answer;
+  return (
+    <div className="flex flex-1 flex-col gap-4" data-gap={item.id}>
+      <div className="flex flex-col items-center gap-2 py-2 text-center">
+        <p className="text-sm font-semibold uppercase tracking-widest text-mute">{topic?.title ?? 'Граматика'} · встав пропущене</p>
+        <p className="display text-3xl not-italic normal-case leading-tight">
+          {item.before && <span>{item.before} </span>}
+          <span className={chosen === null ? 'text-gold' : 'rounded-lg bg-gold/20 px-1 text-gold'}>{filled}</span>
+          {item.after && <span>{/^[.,!?]/.test(item.after) ? '' : ' '}{item.after}</span>}
+        </p>
+        <p className="text-base text-mute">{item.ukrainian}</p>
+      </div>
+      <div className="flex flex-1 flex-col justify-center gap-3">
+        {step.options.map((option) => {
+          const state = chosen === null ? 'idle' : option === item.answer ? 'right' : option === chosen ? 'wrong' : 'dim';
+          return (
+            <button
+              key={option}
+              className={`min-h-14 rounded-2xl border-2 px-4 py-3 text-xl font-semibold transition ${CHOICE_LOOK[state]}`}
+              onClick={() => choose(option)}
+              disabled={chosen !== null || locked}
+              data-option={option}
+            >
+              {option}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+interface VerbProps {
+  step: VerbStep;
+  content: Content;
+  say: Say;
+  locked: boolean;
+  onAnswer: (correct: boolean, rightAnswer: string) => void;
+}
+
+const FORM_LABEL = { past: 'Минулий час (Past Simple)', participle: 'Третя форма (have / has …)' } as const;
+
+/** Irregular verb form. After answering, all three forms are shown and spoken. */
+function VerbView({ step, content, say, locked, onAnswer }: VerbProps) {
+  const verb = content.verbByBase.get(step.verb);
+  if (!verb) throw new Error(`Дієслово «${step.verb}» відсутнє`);
+  const [chosen, setChosen] = useState<string | null>(null);
+  const correct = step.form === 'past' ? verb.past : verb.participle;
+  const forms = `${verb.base} — ${verb.past} — ${verb.participle}`;
+
+  const choose = (option: string) => {
+    if (chosen !== null || locked) return;
+    setChosen(option);
+    say(`${verb.base}, ${verb.past}, ${verb.participle}`);
+    onAnswer(option === correct, forms);
+  };
+
+  return (
+    <div className="flex flex-1 flex-col gap-4" data-verb={verb.base} data-form={step.form}>
+      <div className="flex flex-col items-center gap-2 py-2 text-center">
+        <p className="text-sm font-semibold uppercase tracking-widest text-mute">Неправильне дієслово</p>
+        <button className="display flex items-center gap-2 text-5xl" onClick={() => say(verb.base)} aria-label={`Послухати ${verb.base}`}>
+          {verb.base} <Volume2 size={24} className="text-mute" />
+        </button>
+        <p className="text-xl font-semibold text-gold">{verb.ukrainian}</p>
+        <p className="rounded-full border border-line px-3 py-1 text-sm text-mute">{FORM_LABEL[step.form]}</p>
+        {chosen !== null && <p className="display text-2xl not-italic normal-case text-chalk">{forms}</p>}
+      </div>
+      <div className="grid flex-1 grid-cols-2 content-center gap-3">
+        {step.options.map((option) => {
+          const state = chosen === null ? 'idle' : option === correct ? 'right' : option === chosen ? 'wrong' : 'dim';
+          return (
+            <button
+              key={option}
+              className={`min-h-16 rounded-2xl border-2 px-3 py-3 text-2xl font-semibold transition last:odd:col-span-2 ${CHOICE_LOOK[state]}`}
+              onClick={() => choose(option)}
+              disabled={chosen !== null || locked}
+              data-option={option}
+            >
+              {option}
             </button>
           );
         })}
