@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Check, Volume2 } from 'lucide-react';
 import { BarChart } from '../components/BarChart';
+import { ShareReport } from '../components/ShareReport';
 import { WordImage } from '../components/WordImage';
 import { dailyBars, learnedPick } from '../lib/charts';
 import { speak } from '../lib/speech';
@@ -37,7 +38,7 @@ export function ProgressTab({ content, progress, now }: { content: Content; prog
         <div className="flex items-baseline justify-between">
           <h2 className="display text-xl">Мій тиждень</h2>
           <p className="text-sm text-mute">
-            <b className="tabular-nums text-chalk">{week.learned}</b> нових слів · <b className="tabular-nums text-chalk">{week.matches}</b> матчів
+            нових слів: <b className="tabular-nums text-chalk">{week.learned}</b> · матчів: <b className="tabular-nums text-chalk">{week.matches}</b>
           </p>
         </div>
         <BarChart
@@ -46,6 +47,9 @@ export function ProgressTab({ content, progress, now }: { content: Content; prog
           ariaLabel="Нові вивчені слова за останні 7 днів"
         />
         <p className="mt-1 text-xs text-mute">Нові вивчені слова за день</p>
+        <div className="mt-3">
+          <ShareReport content={content} progress={progress} now={now} />
+        </div>
       </section>
 
       <section>

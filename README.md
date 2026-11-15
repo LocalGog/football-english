@@ -22,6 +22,7 @@
 - Нижня навігація з шести розділів: Home, Play, My Club, Awards, Progress, Parents.
 - Progress (для дитини): нові слова за тиждень, засвоєння тем, власний словник з озвученням.
 - Parents (батьківський режим під PIN): вивчені слова, пройдені матчі, час занять із графіком за 7 і 30 днів, підсумки за тиждень і місяць, результати за типом завдань (читання, слухання, пригадування), складні слова з поясненням, засвоєні теми, рекомендований час на день, резервна копія, скидання прогресу з підтвердженням.
+- Звіт за тиждень: кнопка «Надіслати звіт батькам» у Progress (і в Parents) відкриває меню «Поділитися» телефона з готовим текстом для Viber, Telegram чи SMS. Якщо меню недоступне, текст копіюється.
 - Рекомендований час на день: гра не блокується, але після цілі дитина бачить пропозицію відпочити.
 - Інтервальне повторення: 5 хв → 1 → 3 → 7 → 14 днів; пропущені слова повертаються в наступні матчі. Після сезону кнопка PLAY NOW запускає матч на повторення.
 - Прогрес зберігається після кожної відповіді в IndexedDB (копія в localStorage).
@@ -98,11 +99,11 @@ Parents → «Резервна копія».
 ```
 src/content/   навчальний контент (JSON)
 src/lib/       логіка без інтерфейсу: engine (побудова матчу), srs (повторення),
-               progress (XP, рівні, відкриття сезонів, ступінь складності), club (нагороди, досягнення, ліга, скаут),
+               progress (XP, рівні, відкриття сезонів, ступінь складності), report (звіт), club (нагороди, досягнення, ліга, скаут),
                stats (статистика), charts, pin, storage (IndexedDB), backup (копія),
                speech (озвучення), recorder (запис голосу)
 src/screens/   Onboarding, Home, Play, Club, Awards, ProgressTab, Parent, Mission, Result, Scout, Speak
-src/components/ Avatar (Jersey), Ball, BarChart, BackupPanel, PlayerCard, Pitch, BottomNav, WordImage,
+src/components/ Avatar (Jersey), Ball, BarChart, BackupPanel, ShareReport, PlayerCard, Pitch, BottomNav, WordImage,
                SettingsSheet, ErrorBoundary
 public/        manifest, service worker, іконки
 tests/         модульні тести

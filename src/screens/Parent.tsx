@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Lock, LogOut } from 'lucide-react';
 import { BackupPanel } from '../components/BackupPanel';
 import { BarChart } from '../components/BarChart';
+import { ShareReport } from '../components/ShareReport';
 import { dailyBars, minutesPick } from '../lib/charts';
 import { checkPin, hashPin, isValidPin, makeSalt, PIN_LENGTH } from '../lib/pin';
 import { DAILY_MINUTE_CHOICES, levelInfo } from '../lib/progress';
@@ -252,6 +253,7 @@ function Dashboard({ content, progress, now, onLock, onDailyMinutes, onImport, o
       </section>
 
       <PeriodCard title="За тиждень" period={week} />
+      <ShareReport content={content} progress={progress} now={now} />
       <PeriodCard title="За місяць" period={month} />
 
       <section className="rounded-3xl border border-line bg-panel p-4">
