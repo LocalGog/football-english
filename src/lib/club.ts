@@ -114,7 +114,7 @@ export interface ScoutQuestion {
 
 const QUESTIONS: Record<ScoutKey, { english: string; ukrainian: string }> = {
   position: { english: 'What position does he play?', ukrainian: 'На якій позиції він грає?' },
-  number: { english: 'What is his number?', ukrainian: 'Який у нього номер?' },
+  number: { english: 'What is his famous number?', ukrainian: 'Який його знаменитий номер?' },
   colour: { english: 'What colour is his shirt?', ukrainian: 'Якого кольору його футболка?' },
   trait: { english: 'What is he like?', ukrainian: 'Який він?' },
 };
@@ -129,13 +129,15 @@ export function nextScoutPlayer(content: Content, p: Progress): ClubPlayer | nul
 
 export const transfersLeft = (content: Content, p: Progress): boolean => p.club.cards.length < content.players.length;
 
-/** The position is always asked; number, colour and trait only if the player has met those words. */
+/** The position is always asked; number, colour and trait only if the card has them and the player has met those words. */
 export function buildScout(player: ClubPlayer, content: Content, p: Progress, rng: Rng = Math.random): ScoutQuestion[] {
   const keys: ScoutKey[] = ['position', 'number', 'colour', 'trait'];
   return keys
-    .filter((key) => key === 'position' || seen(p, player[key]))
-    .map((key) => {
+    .flatMap((key) => {
       const wordId = player[key];
+      return wordId !== null && (key === 'position' || seen(p, wordId)) ? [{ key, wordId }] : [];
+    })
+    .map(({ key, wordId }) => {
       const category = content.wordById.get(wordId)?.category;
       const others = content.words.filter((w) => w.category === category && w.id !== wordId).map((w) => w.id);
       const options = shuffle([wordId, ...shuffle(others, rng).slice(0, SCOUT_OPTIONS - 1)], rng);
@@ -146,13 +148,13 @@ export function buildScout(player: ClubPlayer, content: Content, p: Progress, rn
 /** English scouting report, line by line. */
 export function scoutReport(player: ClubPlayer, content: Content): string[] {
   const en = (id: string) => content.wordById.get(id)?.english ?? id;
-  return [
-    `Name: ${player.name}.`,
-    `Position: ${en(player.position)}.`,
-    `Number: ${en(player.number)}.`,
-    `His shirt is ${en(player.colour)}.`,
-    `He is ${en(player.trait)}.`,
-  ];
+  const lines = [`Name: ${player.name}.`, `He is from ${player.country}.`, `Position: ${en(player.position)}.`];
+  if (player.number) lines.push(`His famous number is ${en(player.number)}.`);
+  if (player.colour) {
+    lines.push(player.colourNote === 'famous' ? `His famous shirt is ${en(player.colour)}.` : `In the national team his shirt is ${en(player.colour)}.`);
+  }
+  if (player.trait) lines.push(`He is ${en(player.trait)}.`);
+  return lines;
 }
 
 export function signPlayer(p: Progress, playerId: string): Progress {

@@ -34,15 +34,28 @@ export interface Level {
   title: string;
 }
 
+/**
+ * A real footballer. Only facts that do not change from season to season are kept:
+ * clubs and current shirt numbers are left out on purpose.
+ */
 export interface ClubPlayer {
   id: string;
   name: string;
-  /** Word ids: what the scouting task asks about. */
+  /** Name that fits a small card, usually the surname. */
+  short: string;
+  /** English country name, shown as is. */
+  country: string;
+  /** Word ids: what the scouting task asks about. Null means the fact is not used. */
   position: string;
-  number: string;
-  colour: string;
-  trait: string;
-  rating: number;
+  /** The number the player is famous for. */
+  number: string | null;
+  /** National team home shirt, or the famous shirt when colourNote is 'famous'. */
+  colour: string | null;
+  colourNote?: 'national' | 'famous';
+  /** Only well-known, positive traits. */
+  trait: string | null;
+  /** Card tier: 1 bronze, 2 silver, 3 gold. */
+  tier: 1 | 2 | 3;
 }
 
 export interface Kit {

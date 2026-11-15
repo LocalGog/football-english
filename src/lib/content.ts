@@ -76,9 +76,11 @@ export function validateContent(c: Content): string[] {
   const category = (id: string) => c.wordById.get(id)?.category;
   for (const p of c.players) {
     if (category(p.position) !== 'positions') problems.push(`player ${p.id}: position ${p.position} is not a position word`);
-    if (category(p.number) !== 'numbers') problems.push(`player ${p.id}: number ${p.number} is not a number word`);
-    if (category(p.colour) !== 'colours') problems.push(`player ${p.id}: colour ${p.colour} is not a colour word`);
-    if (category(p.trait) !== 'describing') problems.push(`player ${p.id}: trait ${p.trait} is not a describing word`);
+    if (p.number !== null && category(p.number) !== 'numbers') problems.push(`player ${p.id}: number ${p.number} is not a number word`);
+    if (p.colour !== null && category(p.colour) !== 'colours') problems.push(`player ${p.id}: colour ${p.colour} is not a colour word`);
+    if (p.trait !== null && category(p.trait) !== 'describing') problems.push(`player ${p.id}: trait ${p.trait} is not a describing word`);
+    if (![1, 2, 3].includes(p.tier)) problems.push(`player ${p.id}: tier must be 1, 2 or 3`);
+    if (!p.country.trim() || !p.short.trim()) problems.push(`player ${p.id}: country or short name is empty`);
   }
   for (const b of c.balls) {
     if (b.achievement && !c.achievements.some((a) => a.id === b.achievement)) problems.push(`ball ${b.id}: unknown achievement ${b.achievement}`);

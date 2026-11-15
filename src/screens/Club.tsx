@@ -19,7 +19,6 @@ interface Props {
 
 export function ClubScreen({ content, progress, onScout, onKit, onBall, onStadium }: Props) {
   const squad = progress.club.cards.flatMap((id) => content.players.find((p) => p.id === id) ?? []);
-  const rating = squad.length ? Math.round(squad.reduce((s, p) => s + p.rating, 0) / squad.length) : 0;
   const season = currentSeason(content, progress);
   const table = leagueTable(content, progress, season, clubName(progress));
   const candidate = nextScoutPlayer(content, progress);
@@ -37,7 +36,6 @@ export function ClubScreen({ content, progress, onScout, onKit, onBall, onStadiu
         <h1 className="display truncate text-3xl">{clubName(progress)}</h1>
         <p className="text-sm text-mute">
           {stadium.name} · гравців {squad.length}/{content.players.length}
-          {rating > 0 && ` · рейтинг ${rating}`}
         </p>
       </header>
 
@@ -73,7 +71,7 @@ export function ClubScreen({ content, progress, onScout, onKit, onBall, onStadiu
               <li key={p.id}>
                 <button
                   className="w-full active:scale-95"
-                  onClick={() => speak(`${p.name}. ${word(p.position)}. Number ${word(p.number)}.`, progress.settings)}
+                  onClick={() => speak(`${p.name}. ${word(p.position)}. ${p.country}.`, progress.settings)}
                   aria-label={`Послухати про гравця ${p.name}`}
                   data-card={p.id}
                 >

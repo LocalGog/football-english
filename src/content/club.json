@@ -27,12 +27,12 @@
     {"id":"champions","name":"Champions Stadium","description":"Стадіон чемпіонів","words":200,"light":"#12b07a","dark":"#064a3c"}
   ],
   "rivals": [
-    {"id":"r1","name":"River Town","strength":0.2},
-    {"id":"r2","name":"North Stars","strength":0.75},
-    {"id":"r3","name":"Old Bridge","strength":0.45},
-    {"id":"r4","name":"Green Park","strength":0.3},
-    {"id":"r5","name":"Blue Harbour","strength":0.6},
-    {"id":"r6","name":"Iron City","strength":0.9},
-    {"id":"r7","name":"Sunny Hill","strength":0.1}
+    {"id":"r1","name":"Dynamo Kyiv","strength":0.7},
+    {"id":"r2","name":"Shakhtar Donetsk","strength":0.65},
+    {"id":"r3","name":"Real Madrid","strength":0.9},
+    {"id":"r4","name":"Barcelona","strength":0.85},
+    {"id":"r5","name":"Bayern Munich","strength":0.8},
+    {"id":"r6","name":"Manchester City","strength":0.75},
+    {"id":"r7","name":"Liverpool","strength":0.6}
   ]
 }

@@ -127,11 +127,11 @@ describe('scouting', () => {
     expect(nextScoutPlayer(content, withPlayer())).toBeNull();
     expect(nextScoutPlayer(content, knowsPositions())?.id).toBe('p01');
   });
-  it('asks only about words the player has met; the position always', () => {
-    const tom = content.players[0];
-    const early = buildScout(tom, content, knowsPositions());
+  it('asks only about facts the card has and words the player has met; the position always', () => {
+    const salah = content.players.find((c) => c.id === 'p10')!;
+    const early = buildScout(salah, content, knowsPositions());
     expect(early.map((q) => q.key)).toEqual(['position']);
-    const later = buildScout(tom, content, learn(knowsPositions(), [tom.number, tom.colour, tom.trait]));
+    const later = buildScout(salah, content, learn(knowsPositions(), [salah.number!, salah.colour!, salah.trait!]));
     expect(later.map((q) => q.key)).toEqual(['position', 'number', 'colour', 'trait']);
     for (const q of later) {
       expect(q.options).toContain(q.wordId);
@@ -139,11 +139,17 @@ describe('scouting', () => {
       const category = content.wordById.get(q.wordId)!.category;
       for (const id of q.options) expect(content.wordById.get(id)!.category).toBe(category);
     }
+    const lunin = content.players[0];
+    const allMet = learn(knowsPositions(), content.words.map((w) => w.id));
+    expect(buildScout(lunin, content, allMet).map((q) => q.key)).toEqual(['position']);
   });
   it('writes the report in English from the dictionary', () => {
-    expect(scoutReport(content.players[4], content)).toEqual([
-      'Name: Leo Hart.', 'Position: striker.', 'Number: nine.', 'His shirt is yellow.', 'He is fast.',
+    expect(scoutReport(content.players.find((c) => c.id === 'p10')!, content)).toEqual([
+      'Name: Mohamed Salah.', 'He is from Egypt.', 'Position: striker.', 'His famous number is eleven.',
+      'In the national team his shirt is red.', 'He is fast.',
     ]);
+    expect(scoutReport(content.players[0], content)).toEqual(['Name: Andriy Lunin.', 'He is from Ukraine.', 'Position: goalkeeper.']);
+    expect(scoutReport(content.players.find((c) => c.id === 'p22')!, content)).toContain('His famous shirt is black.');
   });
   it('signing spends a transfer, needs one, and never duplicates a player', () => {
     const p = { ...knowsPositions(), club: { cards: [], tokens: 1, ball: 'classic', stadium: 'street' } };

@@ -71,7 +71,7 @@ function PinSetup({ onSet }: { onSet: (hash: string, salt: string) => void }) {
     <main className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
       <h1 className="display text-3xl">Parent Zone</h1>
       <p className="text-mute">
-        Розділ для батьків: статистика навчання, резервна копія, налаштування. Створіть PIN, щоб дитина не змінювала налаштування випадково.
+        Розділ для батьків: статистика навчання, резервна копія, налаштування. PIN має створити дорослий. PIN і прогрес зберігаються лише на цьому телефоні, тому на кожному пристрої вони окремі.
       </p>
       <form className="flex flex-col gap-4" onSubmit={submit}>
         <PinInput id="pin-new" label="Новий PIN" value={pin} onChange={setPin} />
